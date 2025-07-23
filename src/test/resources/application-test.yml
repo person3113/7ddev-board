@@ -1,0 +1,36 @@
+spring:
+  profiles:
+    active: test
+
+  # 테스트용 H2 설정
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  h2:
+    console:
+      enabled: false
+
+  # JPA 테스트 설정
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: false
+        show_sql: false
+    show-sql: false
+
+  # Thymeleaf 설정
+  thymeleaf:
+    cache: false
+
+# 테스트 로깅 설정
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.springframework.web: warn
+    com.board: info
+    root: warn

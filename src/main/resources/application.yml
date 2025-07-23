@@ -1,15 +1,91 @@
 spring:
+  # 프로필별 설정
+  profiles:
+    active: dev
+
+  # 데이터베이스 설정 (개발 환경 - H2)
   datasource:
     url: jdbc:h2:mem:devdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password:
     driver-class-name: org.h2.Driver
+
+  # H2 콘솔 설정 (개발용)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+
+  # JPA 설정
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update  # 개발 시 테이블 자동 생성/삭제
     properties:
       hibernate:
         format_sql: true
+        show_sql: true
+        use_sql_comments: true
+    show-sql: true
 
-logging.level:
-  org.hibernate.SQL: debug
+  # Thymeleaf 설정
+  thymeleaf:
+    cache: false  # 개발 시 캐시 비활성화
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+
+# 로깅 설정
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace  # 바인딩 파라미터 출력
+    org.springframework.web: debug
+    com.board: debug  # 프로젝트 패키지 로깅
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+# 프로덕션 환경 설정 (배포용)
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  # MySQL 설정 (배포용)
+  datasource:
+    url: jdbc:mysql://localhost:3306/board_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME:board_user}
+    password: ${DB_PASSWORD:board_password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # H2 콘솔 비활성화
+  h2:
+    console:
+      enabled: false
+
+  # JPA 설정 (프로덕션)
+  jpa:
+    hibernate:
+      ddl-auto: validate  # 프로덕션에서는 스키마 검증만
+    properties:
+      hibernate:
+        format_sql: false
+        show_sql: false
+    show-sql: false
+
+  # Thymeleaf 설정 (프로덕션)
+  thymeleaf:
+    cache: true  # 프로덕션에서는 캐시 활성화
+
+# 로깅 설정 (프로덕션)
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.springframework.web: warn
+    com.board: info
+  file:
+    name: logs/board-app.log
