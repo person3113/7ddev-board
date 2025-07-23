@@ -11,47 +11,47 @@
 ## Day 1: 프로젝트 기반 설정 및 도메인 모델링
 
 ### 🔧 환경 설정 (2시간)
-- [ ] **의존성 추가** (build.gradle)
-  - [ ] Spring Data JPA
-  - [ ] H2 Database (개발용)
-  - [ ] MySQL Connector (배포용)
-  - [ ] Spring Web
-  - [ ] Thymeleaf
-  - [ ] Spring Boot Test
-  - [ ] Validation
-  - [ ] Spring Security (2순위에서 사용)
+- [x] **의존성 추가** (build.gradle)
+  - [x] Spring Data JPA
+  - [x] H2 Database (개발용)
+  - [x] MySQL Connector (배포용)
+  - [x] Spring Web
+  - [x] Thymeleaf
+  - [x] Spring Boot Test
+  - [x] Validation
+  - [x] Spring Security (2순위에서 사용)
 
-- [ ] **application.yml 설정**
-  - [ ] H2 설정 (개발 환경)
-  - [ ] JPA 설정 (DDL 자동생성)
-  - [ ] Thymeleaf 설정
-  - [ ] 로깅 설정
+- [x] **application.yml 설정**
+  - [x] H2 설정 (개발 환경)
+  - [x] JPA 설정 (DDL 자동생성)
+  - [x] Thymeleaf 설정
+  - [x] 로깅 설정
 
 ### 🏗️ 도메인 모델 설계 및 구현 (6시간)
 
 #### Enum 클래스 구현
-- [ ] `Role` enum (USER, ADMIN)
+- [x] `Role` enum (USER, ADMIN)
 
 #### 엔티티 구현 (TDD 방식)
 **User 엔티티**
-- [ ] **Red**: User 엔티티 생성 테스트 작성
-- [ ] **Green**: User 엔티티 구현
-- [ ] **Refactor**: 연관관계 및 제약조건 최적화
+- [x] **Red**: User 엔티티 생성 테스트 작성
+- [x] **Green**: User 엔티티 구현
+- [x] **Refactor**: 연관관계 및 제약조건 최적화
 
 **Post 엔티티**
-- [ ] **Red**: Post 엔티티 생성 및 User 연관관계 테스트
-- [ ] **Green**: Post 엔티티 구현
-- [ ] **Refactor**: 인덱스 및 성능 최적화
+- [x] **Red**: Post 엔티티 생성 및 User 연관관계 테스트
+- [x] **Green**: Post 엔티티 구현
+- [x] **Refactor**: 인덱스 및 성능 최적화
 
 **Comment 엔티티**
-- [ ] **Red**: Comment 엔티티 및 연관관계 테스트
-- [ ] **Green**: Comment 엔티티 구현
-- [ ] **Refactor**: 계층 구조 최적화
+- [x] **Red**: Comment 엔티티 및 연관관계 테스트
+- [x] **Green**: Comment 엔티티 구현
+- [x] **Refactor**: 계층 구조 최적화
 
 #### Repository 계층 구현
-- [ ] UserRepository 인터페이스 및 기본 쿼리 메소드
-- [ ] PostRepository 인터페이스 및 검색 쿼리 메소드
-- [ ] CommentRepository 인터페이스
+- [x] UserRepository 인터페이스 및 기본 쿼리 메소드
+- [x] PostRepository 인터페이스 및 검색 쿼리 메소드
+- [x] CommentRepository 인터페이스
 
 ---
 

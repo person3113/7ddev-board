@@ -48,7 +48,10 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    // 연관관계 추가 (양방향)
+    // 마지막 로그인 시간 추가 (실무에서 중요한 필드)
+    private LocalDateTime lastLogin;
+
+    // 연관관계 (양방향)
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Post> posts = new ArrayList<>();
 
@@ -69,6 +72,7 @@ public class User {
         this.role = role != null ? role : Role.USER;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        // lastLogin은 회원가입 시에는 null (첫 로그인 시 설정)
     }
 
     public void updateProfile(String nickname, String email) {
@@ -91,7 +95,13 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 비즈니스 메서드 추가
+    // 로그인 시간 업데이트 (실무에서 필수)
+    public void updateLastLogin() {
+        this.lastLogin = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // 비즈니스 메서드
     public boolean isAdmin() {
         return this.role == Role.ADMIN;
     }
@@ -102,6 +112,17 @@ public class User {
 
     public int getCommentCount() {
         return this.comments.size();
+    }
+
+    // 휴면 계정 체크 (30일 미로그인)
+    public boolean isDormant() {
+        if (lastLogin == null) return false; // 한 번도 로그인하지 않은 경우
+        return lastLogin.isBefore(LocalDateTime.now().minusDays(30));
+    }
+
+    // 신규 가입자 체크 (7일 이내)
+    public boolean isNewUser() {
+        return createdAt.isAfter(LocalDateTime.now().minusDays(7));
     }
 
     private void validateUsername(String username) {

@@ -1,1 +1,0 @@
-agent mode 실행 시 모든 도구 자동 승인: "chat.agent.enabled": true

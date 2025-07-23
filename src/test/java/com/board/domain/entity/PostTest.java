@@ -47,8 +47,31 @@ class PostTest {
         assertThat(post.getViewCount()).isEqualTo(0);
         assertThat(post.getLikeCount()).isEqualTo(0);
         assertThat(post.isDeleted()).isFalse();
+        assertThat(post.isNotice()).isFalse(); // 기본값은 false
         assertThat(post.getCreatedAt()).isNotNull();
         assertThat(post.getUpdatedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("공지사항으로 게시글을 생성할 수 있다")
+    void createNoticePost() {
+        // given
+        String title = "공지사항";
+        String content = "중요한 공지입니다.";
+        String category = "공지사항";
+
+        // when
+        Post post = Post.builder()
+                .title(title)
+                .content(content)
+                .category(category)
+                .author(author)
+                .isNotice(true)
+                .build();
+
+        // then
+        assertThat(post.isNotice()).isTrue();
+        assertThat(post.getTitle()).isEqualTo(title);
     }
 
     @Test
@@ -194,5 +217,72 @@ class PostTest {
         // when & then
         assertThat(post.isAuthor(author)).isTrue();
         assertThat(post.isAuthor(otherUser)).isFalse();
+    }
+
+    @Test
+    @DisplayName("관리자는 공지사항을 설정할 수 있다")
+    void setNoticeByAdmin() {
+        // given
+        User admin = User.builder()
+                .username("admin")
+                .email("admin@example.com")
+                .password("password123")
+                .nickname("관리자")
+                .role(Role.ADMIN)
+                .build();
+
+        Post post = Post.builder()
+                .title("일반 게시글")
+                .content("일반 내용")
+                .category("자유게시판")
+                .author(author)
+                .build();
+
+        // when
+        post.setNotice(true, admin);
+
+        // then
+        assertThat(post.isNotice()).isTrue();
+    }
+
+    @Test
+    @DisplayName("일반 사용자는 공지사항을 설정할 수 없다")
+    void setNoticeByUserShouldFail() {
+        // given
+        Post post = Post.builder()
+                .title("일반 게시글")
+                .content("일반 내용")
+                .category("자유게시판")
+                .author(author)
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> post.setNotice(true, author))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("공지사항은 관리자만 설정할 수 있습니다");
+    }
+
+    @Test
+    @DisplayName("공지사항 토글 권한을 확인할 수 있다")
+    void checkNoticeTogglePermission() {
+        // given
+        User admin = User.builder()
+                .username("admin")
+                .email("admin@example.com")
+                .password("password123")
+                .nickname("관리자")
+                .role(Role.ADMIN)
+                .build();
+
+        Post post = Post.builder()
+                .title("테스트 게시글")
+                .content("테스트 내용")
+                .category("자유게시판")
+                .author(author)
+                .build();
+
+        // when & then
+        assertThat(post.canToggleNotice(author)).isFalse(); // 일반 사용자
+        assertThat(post.canToggleNotice(admin)).isTrue();   // 관리자
     }
 }

@@ -15,7 +15,8 @@ import java.util.List;
        indexes = {
            @Index(name = "idx_category", columnList = "category"),
            @Index(name = "idx_created_at", columnList = "createdAt"),
-           @Index(name = "idx_deleted", columnList = "deleted")
+           @Index(name = "idx_deleted", columnList = "deleted"),
+           @Index(name = "idx_notice", columnList = "notice") // 공지사항 조회 최적화
        })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -49,6 +50,10 @@ public class Post {
     @Column(nullable = false)
     private Boolean deleted = false;
 
+    // 공지사항 여부 (실무에서 필수)
+    @Column(nullable = false, name = "notice")
+    private Boolean isNotice = false;
+
     private LocalDateTime deletedAt;
 
     @CreatedDate
@@ -59,12 +64,12 @@ public class Post {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    // 연관관계 추가 (양방향)
+    // 연관관계 (양방향)
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Comment> comments = new ArrayList<>();
 
     @Builder
-    public Post(String title, String content, String category, User author) {
+    public Post(String title, String content, String category, User author, Boolean isNotice) {
         validateTitle(title);
         validateContent(content);
         validateAuthor(author);
@@ -76,6 +81,7 @@ public class Post {
         this.viewCount = 0;
         this.likeCount = 0;
         this.deleted = false;
+        this.isNotice = isNotice != null ? isNotice : false;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
@@ -87,6 +93,15 @@ public class Post {
         this.title = title;
         this.content = content;
         this.category = category;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // 공지사항 설정 (관리자만 가능)
+    public void setNotice(boolean isNotice, User requestUser) {
+        if (!requestUser.isAdmin()) {
+            throw new IllegalArgumentException("공지사항은 관리자만 설정할 수 있습니다");
+        }
+        this.isNotice = isNotice;
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -124,7 +139,7 @@ public class Post {
         return this.deleted;
     }
 
-    // 비즈니스 메서드 추가
+    // 비즈니스 메서드
     public boolean canEdit(User user) {
         return isAuthor(user) || user.isAdmin();
     }
@@ -133,12 +148,22 @@ public class Post {
         return isAuthor(user) || user.isAdmin();
     }
 
+    // 공지사항 해제 가능 여부
+    public boolean canToggleNotice(User user) {
+        return user.isAdmin();
+    }
+
     public int getCommentCount() {
         return this.comments.size();
     }
 
     public boolean isPopular() {
         return this.viewCount >= 100 || this.likeCount >= 10;
+    }
+
+    // 공지사항인지 확인
+    public boolean isNotice() {
+        return this.isNotice;
     }
 
     private void validateTitle(String title) {

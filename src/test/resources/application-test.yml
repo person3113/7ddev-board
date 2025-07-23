@@ -1,6 +1,4 @@
 spring:
-  profiles:
-    active: test
 
   # 테스트용 H2 설정
   datasource:

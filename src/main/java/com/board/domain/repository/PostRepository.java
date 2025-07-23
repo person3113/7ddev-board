@@ -51,4 +51,19 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      * 카테고리별 게시글 수 (삭제되지 않은 것만)
      */
     long countByCategoryAndDeletedFalse(String category);
+
+    /**
+     * 공지사항 조회 (삭제되지 않은 것만, 최신순)
+     */
+    Page<Post> findByIsNoticeTrueAndDeletedFalseOrderByCreatedAtDesc(Pageable pageable);
+
+    /**
+     * 일반 게시글 조회 (공지사항 제외, 삭제되지 않은 것만)
+     */
+    Page<Post> findByIsNoticeFalseAndDeletedFalseOrderByCreatedAtDesc(Pageable pageable);
+
+    /**
+     * 공지사항 개수 조회
+     */
+    long countByIsNoticeTrueAndDeletedFalse();
 }

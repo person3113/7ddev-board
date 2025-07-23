@@ -25,9 +25,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
         use_sql_comments: true
-    show-sql: true
 
   # Thymeleaf 설정
   thymeleaf:
@@ -74,8 +72,6 @@ spring:
     properties:
       hibernate:
         format_sql: false
-        show_sql: false
-    show-sql: false
 
   # Thymeleaf 설정 (프로덕션)
   thymeleaf:
