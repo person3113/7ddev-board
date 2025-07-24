@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${post.id != null ? '게시글 수정' : '게시글 작성'} + ' - 7일 게시판'">게시글 작성 - 7일 게시판</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- 상단 네비게이션 -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/posts">게시글 목록</a></li>
+                        <li class="breadcrumb-item" th:if="${post.id != null}">
+                            <a th:href="@{/posts/{id}(id=${post.id})}">게시글 상세</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page"
+                            th:text="${post.id != null ? '게시글 수정' : '게시글 작성'}"></li>
+                    </ol>
+                </nav>
+
+                <!-- 폼 카드 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0" th:text="${post.id != null ? '게시글 수정' : '게시글 작성'}"></h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- 에러 메시지 -->
+                        <div th:if="${error}" class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span th:text="${error}"></span>
+                        </div>
+
+                        <!-- 게시글 폼 -->
+                        <form th:action="${post.id != null ? '/posts/' + post.id : '/posts'}"
+                              method="post"
+                              th:object="${post}">
+
+                            <!-- PUT 메서드 지원 (수정 시) -->
+                            <input th:if="${post.id != null}" type="hidden" name="_method" value="put">
+
+                            <!-- 사용자 ID (임시로 1 고정, 향후 세션에서 가져올 예정) -->
+                            <input type="hidden" th:field="*{authorId}" th:if="${post.id == null}" value="1">
+                            <input type="hidden" th:field="*{userId}" th:if="${post.id != null}">
+
+                            <!-- 제목 -->
+                            <div class="mb-3">
+                                <label for="title" class="form-label">
+                                    제목 <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       th:field="*{title}"
+                                       th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'"
+                                       id="title"
+                                       placeholder="게시글 제목을 입력하세요"
+                                       maxlength="200">
+                                <div th:if="${#fields.hasErrors('title')}"
+                                     class="invalid-feedback"
+                                     th:errors="*{title}"></div>
+                            </div>
+
+                            <!-- 카테고리 -->
+                            <div class="mb-3">
+                                <label for="category" class="form-label">카테고리</label>
+                                <select class="form-select" th:field="*{category}" id="category">
+                                    <option value="">카테고리 선택</option>
+                                    <option value="일반">일반</option>
+                                    <option value="공지">공지</option>
+                                    <option value="질문">질문</option>
+                                    <option value="자유">자유</option>
+                                    <option value="정보">정보</option>
+                                </select>
+                            </div>
+
+                            <!-- 내용 -->
+                            <div class="mb-4">
+                                <label for="content" class="form-label">
+                                    내용 <span class="text-danger">*</span>
+                                </label>
+                                <textarea class="form-control"
+                                          th:field="*{content}"
+                                          th:classappend="${#fields.hasErrors('content')} ? 'is-invalid'"
+                                          id="content"
+                                          rows="15"
+                                          placeholder="게시글 내용을 입력하세요"></textarea>
+                                <div th:if="${#fields.hasErrors('content')}"
+                                     class="invalid-feedback"
+                                     th:errors="*{content}"></div>
+                                <div class="form-text">
+                                    게시글 내용을 자세히 작성해주세요.
+                                </div>
+                            </div>
+
+                            <!-- 버튼 그룹 -->
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <a href="/posts" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left"></i> 취소
+                                    </a>
+                                    <a th:if="${post.id != null}"
+                                       th:href="@{/posts/{id}(id=${post.id})}"
+                                       class="btn btn-outline-secondary">
+                                        <i class="bi bi-eye"></i> 미리보기
+                                    </a>
+                                </div>
+                                <div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-lg"></i>
+                                        <span th:text="${post.id != null ? '수정완료' : '작성완료'}"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 작성 가이드 -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">작성 가이드</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="mb-0 small text-muted">
+                            <li>제목은 200자 이내로 명확하게 작성해주세요.</li>
+                            <li>내용은 다른 사용자들이 이해하기 쉽게 자세히 작성해주세요.</li>
+                            <li>적절한 카테고리를 선택하면 다른 사용자들이 쉽게 찾을 수 있습니다.</li>
+                            <li>욕설, 비방, 광고 등의 부적절한 내용은 삭제될 수 있습니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 폼 검증 스크립트 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const titleInput = document.getElementById('title');
+            const contentTextarea = document.getElementById('content');
+
+            // 실시간 글자 수 체크
+            titleInput.addEventListener('input', function() {
+                const remaining = 200 - this.value.length;
+                if (remaining < 0) {
+                    this.value = this.value.substring(0, 200);
+                }
+            });
+
+            // 폼 제출 시 검증
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+
+                // 제목 검증
+                if (titleInput.value.trim() === '') {
+                    titleInput.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    titleInput.classList.remove('is-invalid');
+                }
+
+                // 내용 검증
+                if (contentTextarea.value.trim() === '') {
+                    contentTextarea.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    contentTextarea.classList.remove('is-invalid');
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    alert('필수 항목을 모두 입력해주세요.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

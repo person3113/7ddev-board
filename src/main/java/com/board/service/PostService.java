@@ -5,6 +5,8 @@ import com.board.domain.entity.User;
 import com.board.domain.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -142,5 +144,24 @@ public class PostService {
 
         log.debug("게시글 조회수 증가 완료 - ID: {}, 현재 조회수: {}", id, updatedPost.getViewCount());
         return updatedPost;
+    }
+
+    /**
+     * 게시글 목록 조회 (페이지네이션)
+     *
+     * @param pageable 페이지 정보
+     * @return 게시글 목록 (삭제되지 않은 게시글만)
+     */
+    @Transactional(readOnly = true)
+    public Page<Post> findAll(Pageable pageable) {
+        log.debug("게시글 목록 조회 요청 - 페이지: {}, 크기: {}",
+                pageable.getPageNumber(), pageable.getPageSize());
+
+        Page<Post> posts = postRepository.findByDeletedFalseOrderByCreatedAtDesc(pageable);
+
+        log.debug("게시글 목록 조회 완료 - 전체: {}, 현재 페이지 게시글 수: {}",
+                posts.getTotalElements(), posts.getNumberOfElements());
+
+        return posts;
     }
 }

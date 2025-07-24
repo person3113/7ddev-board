@@ -90,20 +90,22 @@
 - [x] **Refactor**: 삭제 정책 캡슐화
 
 ### 🌐 Post MVC 구현
-- [ ] **Red**: PostController 통합 테스트 작성
-- [ ] **Green**: PostController 구현
-  - [ ] GET /posts (목록 조회)
-  - [ ] GET /posts/{id} (단건 조회)
-  - [ ] GET /posts/new (작성 폼)
-  - [ ] POST /posts (생성)
-  - [ ] GET /posts/{id}/edit (수정 폼)
-  - [ ] PUT /posts/{id} (수정)
-  - [ ] DELETE /posts/{id} (삭제)
-- [ ] **Green**: Thymeleaf 템플릿 구현
-  - [ ] posts/list.html (목록)
-  - [ ] posts/detail.html (상세)
-  - [ ] posts/form.html (작성/수정 폼)
-- [ ] **Refactor**: 예외 처리 및 응답 개선
+- [x] **Red**: PostController 통합 테스트 작성
+- [x] **Green**: PostController 구현
+  - [x] GET /posts (목록 조회)
+  - [x] GET /posts/{id} (단건 조회)
+  - [x] GET /posts/new (작성 폼)
+  - [x] POST /posts (생성)
+  - [x] GET /posts/{id}/edit (수정 폼)
+  - [x] PUT /posts/{id} (수정)
+  - [x] DELETE /posts/{id} (삭제)
+- [x] **Green**: Thymeleaf 템플릿 구현
+  - [x] posts/list.html (목록)
+  - [x] posts/detail.html (상세)
+  - [x] posts/form.html (작성/수정 폼)
+- [x] **Refactor**: 예외 처리 및 응답 개선
+  - [x] GlobalExceptionHandler 구현
+  - [x] 에러 페이지 템플릿 구현 (404, 403, 500, 400)
 
 ---
 
