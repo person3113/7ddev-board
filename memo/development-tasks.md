@@ -60,34 +60,34 @@
 ### 📝 Post 도메인 서비스 구현 (TDD)
 
 #### Post 생성 기능
-- [ ] **Red**: 게시글 생성 테스트 작성
-  - [ ] 유효한 데이터로 게시글 생성 성공
-  - [ ] 필수 필드 누락 시 실패
-  - [ ] 제목 길이 초과 시 실패
-- [ ] **Green**: PostService.createPost() 구현
-- [ ] **Refactor**: 도메인 로직 캡슐화
+- [x] **Red**: 게시글 생성 테스트 작성
+  - [x] 유효한 데이터로 게시글 생성 성공
+  - [x] 필수 필드 누락 시 실패
+  - [x] 제목 길이 초과 시 실패
+- [x] **Green**: PostService.createPost() 구현
+- [x] **Refactor**: 도메인 로직 캡슐화
 
 #### Post 조회 기능
-- [ ] **Red**: 게시글 조회 테스트 작성
-  - [ ] ID로 단건 조회
-  - [ ] 존재하지 않는 ID 조회 시 예외
-  - [ ] 삭제된 게시글 조회 시 예외
-- [ ] **Green**: PostService.findById() 구현
-- [ ] **Refactor**: 조회 최적화
+- [x] **Red**: 게시글 조회 테스트 작성
+  - [x] ID로 단건 조회
+  - [x] 존재하지 않는 ID 조회 시 예외
+  - [x] 삭제된 게시글 조회 시 예외
+- [x] **Green**: PostService.findById() 구현
+- [x] **Refactor**: 조회 최적화
 
 #### Post 수정 기능
-- [ ] **Red**: 게시글 수정 테스트 작성
-  - [ ] 작성자만 수정 가능
-  - [ ] 유효한 데이터로 수정 성공
-- [ ] **Green**: PostService.updatePost() 구현
-- [ ] **Refactor**: 권한 검증 로직 분리
+- [x] **Red**: 게시글 수정 테스트 작성
+  - [x] 작성자만 수정 가능
+  - [x] 유효한 데이터로 수정 성공
+- [x] **Green**: PostService.updatePost() 구현
+- [x] **Refactor**: 권한 검증 로직 분리
 
 #### Post 삭제 기능 (소프트 삭제)
-- [ ] **Red**: 게시글 삭제 테스트 작성
-  - [ ] 작성자만 삭제 가능
-  - [ ] 소프트 삭제 동작 확인
-- [ ] **Green**: PostService.deletePost() 구현
-- [ ] **Refactor**: 삭제 정책 캡슐화
+- [x] **Red**: 게시글 삭제 테스트 작성
+  - [x] 작성자만 삭제 가능
+  - [x] 소프트 삭제 동작 확인
+- [x] **Green**: PostService.deletePost() 구현
+- [x] **Refactor**: 삭제 정책 캡슐화
 
 ### 🌐 Post MVC 구현
 - [ ] **Red**: PostController 통합 테스트 작성
