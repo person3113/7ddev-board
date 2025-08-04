@@ -12,7 +12,28 @@
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2>게시글 목록</h2>
-                    <a href="/posts/new" class="btn btn-primary">글쓰기</a>
+                    <div class="d-flex gap-2">
+                        <!-- 정렬 옵션 -->
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown">
+                                <span th:switch="${currentSort}">
+                                    <span th:case="'latest'">최신순</span>
+                                    <span th:case="'viewCount'">조회순</span>
+                                    <span th:case="'likeCount'">추천순</span>
+                                    <span th:case="*">정렬</span>
+                                </span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" th:href="@{/posts(sort='latest', page=0, size=${posts.size})}"
+                                       th:classappend="${currentSort == 'latest'} ? 'active'">최신순</a></li>
+                                <li><a class="dropdown-item" th:href="@{/posts(sort='viewCount', page=0, size=${posts.size})}"
+                                       th:classappend="${currentSort == 'viewCount'} ? 'active'">조회순</a></li>
+                                <li><a class="dropdown-item" th:href="@{/posts(sort='likeCount', page=0, size=${posts.size})}"
+                                       th:classappend="${currentSort == 'likeCount'} ? 'active'">추천순</a></li>
+                            </ul>
+                        </div>
+                        <a href="/posts/new" class="btn btn-primary">글쓰기</a>
+                    </div>
                 </div>
 
                 <!-- 게시글 목록 테이블 -->
@@ -63,7 +84,7 @@
                         <!-- 이전 페이지 -->
                         <li class="page-item" th:classappend="${posts.first} ? 'disabled'">
                             <a class="page-link"
-                               th:href="@{/posts(page=${posts.number - 1}, size=${posts.size})}"
+                               th:href="@{/posts(page=${posts.number - 1}, size=${posts.size}, sort=${currentSort})}"
                                th:if="${!posts.first}">이전</a>
                             <span class="page-link" th:if="${posts.first}">이전</span>
                         </li>
@@ -73,14 +94,14 @@
                             th:each="pageNum : ${#numbers.sequence(0, posts.totalPages - 1)}"
                             th:classappend="${pageNum == posts.number} ? 'active'">
                             <a class="page-link"
-                               th:href="@{/posts(page=${pageNum}, size=${posts.size})}"
+                               th:href="@{/posts(page=${pageNum}, size=${posts.size}, sort=${currentSort})}"
                                th:text="${pageNum + 1}"></a>
                         </li>
 
                         <!-- 다음 페이지 -->
                         <li class="page-item" th:classappend="${posts.last} ? 'disabled'">
                             <a class="page-link"
-                               th:href="@{/posts(page=${posts.number + 1}, size=${posts.size})}"
+                               th:href="@{/posts(page=${posts.number + 1}, size=${posts.size}, sort=${currentSort})}"
                                th:if="${!posts.last}">다음</a>
                             <span class="page-link" th:if="${posts.last}">다음</span>
                         </li>

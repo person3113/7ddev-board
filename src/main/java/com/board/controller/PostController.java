@@ -4,6 +4,12 @@ import com.board.domain.entity.Post;
 import com.board.domain.entity.User;
 import com.board.domain.repository.UserRepository;
 import com.board.service.PostService;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -40,13 +46,15 @@ public class PostController {
     @GetMapping
     public String getPosts(@RequestParam(defaultValue = "0") int page,
                           @RequestParam(defaultValue = "10") int size,
+                          @RequestParam(defaultValue = "latest") String sort,
                           Model model) {
-        log.debug("게시글 목록 조회 요청 - 페이지: {}, 크기: {}", page, size);
+        log.debug("게시글 목록 조회 요청 - 페이지: {}, 크기: {}, 정렬: {}", page, size, sort);
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<Post> posts = postService.findAll(pageable);
+        Page<Post> posts = postService.findAllWithSort(pageable, sort);
 
         model.addAttribute("posts", posts);
+        model.addAttribute("currentSort", sort);
 
         log.debug("게시글 목록 조회 완료 - 전체: {}, 현재 페이지: {}",
                 posts.getTotalElements(), posts.getNumberOfElements());
@@ -241,46 +249,46 @@ public class PostController {
     /**
      * 게시글 생성 요청 DTO
      */
-    @lombok.Data
-    @lombok.Builder
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class PostCreateRequest {
         private Long id; // 템플릿 호환성을 위해 추가 (항상 null)
 
-        @jakarta.validation.constraints.NotBlank(message = "제목은 필수입니다.")
+        @NotBlank(message = "제목은 필수입니다.")
         @jakarta.validation.constraints.Size(max = 200, message = "제목은 200자 이하여야 합니다.")
         private String title;
 
-        @jakarta.validation.constraints.NotBlank(message = "내용은 필수입니다.")
+        @NotBlank(message = "내용은 필수입니다.")
         private String content;
 
         private String category;
 
-        @jakarta.validation.constraints.NotNull(message = "작성자는 필수입니다.")
+        @NotNull(message = "작성자는 필수입니다.")
         private Long authorId;
     }
 
     /**
      * 게시글 수정 요청 DTO
      */
-    @lombok.Data
-    @lombok.Builder
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class PostUpdateRequest {
         private Long id;
 
-        @jakarta.validation.constraints.NotBlank(message = "제목은 필수입니다.")
+        @NotBlank(message = "제목은 필수입니다.")
         @jakarta.validation.constraints.Size(max = 200, message = "제목은 200자 이하여야 합니다.")
         private String title;
 
-        @jakarta.validation.constraints.NotBlank(message = "내용은 필수입니다.")
+        @NotBlank(message = "내용은 필수입니다.")
         private String content;
 
         private String category;
 
-        @jakarta.validation.constraints.NotNull(message = "사용자 ID는 필수입니다.")
+        @NotNull(message = "사용자 ID는 필수입니다.")
         private Long userId;
     }
 }

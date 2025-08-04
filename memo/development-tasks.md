@@ -114,33 +114,33 @@
 ### 💬 Comment 도메인 서비스 구현 (TDD)
 
 #### Comment CRUD
-- [ ] **Red**: 댓글 CRUD 테스트 작성
-  - [ ] 댓글 생성 (게시글에 종속)
-  - [ ] 댓글 조회 (게시글별)
-  - [ ] 댓글 수정 (작성자만)
-  - [ ] 댓글 삭제 (소프트 삭제)
-- [ ] **Green**: CommentService 구현
-- [ ] **Refactor**: Comment 도메인 로직 개선
+- [x] **Red**: 댓글 CRUD 테스트 작성
+  - [x] 댓글 생성 (게시글에 종속)
+  - [x] 댓글 조회 (게시글별)
+  - [x] 댓글 수정 (작성자만)
+  - [x] 댓글 삭제 (소프트 삭제)
+- [x] **Green**: CommentService 구현
+- [x] **Refactor**: Comment 도메인 로직 개선
 
 ### 🌐 Comment MVC 구현
-- [ ] **Red**: CommentController 통합 테스트
-- [ ] **Green**: CommentController 구현
-  - [ ] POST /posts/{postId}/comments (댓글 생성)
-  - [ ] PUT /comments/{id} (댓글 수정)
-  - [ ] DELETE /comments/{id} (댓글 삭제)
-- [ ] **Green**: 댓글 관련 Thymeleaf 템플릿 추가
-  - [ ] comments/form.html (댓글 작성 폼)
-  - [ ] comments/list.html (댓글 목록 - detail.html에 포함)
-- [ ] **Refactor**: AJAX 기반 댓글 처리 (선택사항)
+- [x] **Red**: CommentController 통합 테스트
+- [x] **Green**: CommentController 구현
+  - [x] POST /posts/{postId}/comments (댓글 생성)
+  - [x] PUT /comments/{id} (댓글 수정)
+  - [x] DELETE /comments/{id} (댓글 삭제)
+- [x] **Green**: 댓글 관련 Thymeleaf 템플릿 추가
+  - [x] comments/form.html (댓글 작성 폼)
+  - [x] comments/list.html (댓글 목록 - detail.html에 포함)
+- [x] **Refactor**: AJAX 기반 댓글 처리 (선택사항)
 
 ### 📄 페이지네이션 구현
-- [ ] **Red**: 페이지네이션 테스트 작성
-  - [ ] Post 목록 페이징
-  - [ ] Comment 목록 페이징
-  - [ ] 정렬 기능 (최신순, 조회수순)
-- [ ] **Green**: Pageable 기반 Repository 메소드 구현
-- [ ] **Green**: 페이징 UI 컴포넌트 (Thymeleaf)
-- [ ] **Refactor**: 페이징 성능 최적화
+- [x] **Red**: 페이지네이션 테스트 작성
+  - [x] Post 목록 페이징
+  - [x] Comment 목록 페이징
+  - [x] 정렬 기능 (최신순, 조회수순, 좋아요순)
+- [x] **Green**: Pageable 기반 Repository 메소드 구현
+- [x] **Green**: 페이징 UI 컴포넌트 (Thymeleaf)
+- [x] **Refactor**: 페이징 성능 최적화
 
 ---
 

@@ -164,4 +164,16 @@ public class PostService {
 
         return posts;
     }
+
+    /**
+     * 게시글 목록 조회 (정렬 옵션 지원)
+     */
+    @Transactional(readOnly = true)
+    public Page<Post> findAllWithSort(Pageable pageable, String sort) {
+        return switch (sort) {
+            case "viewCount" -> postRepository.findByDeletedFalseOrderByViewCountDescCreatedAtDesc(pageable);
+            case "likeCount" -> postRepository.findByDeletedFalseOrderByLikeCountDescCreatedAtDesc(pageable);
+            default -> postRepository.findByDeletedFalseOrderByCreatedAtDesc(pageable); // 기본: 최신순
+        };
+    }
 }

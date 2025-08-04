@@ -66,4 +66,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      * 공지사항 개수 조회
      */
     long countByIsNoticeTrueAndDeletedFalse();
+
+    /**
+     * 조회수 기준으로 게시글 조회 (삭제되지 않은 것만, 페이징)
+     */
+    Page<Post> findByDeletedFalseOrderByViewCountDescCreatedAtDesc(Pageable pageable);
+
+    /**
+     * 좋아요 수 기준으로 게시글 조회 (삭제되지 않은 것만, 페이징)
+     */
+    Page<Post> findByDeletedFalseOrderByLikeCountDescCreatedAtDesc(Pageable pageable);
 }
