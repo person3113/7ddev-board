@@ -16,7 +16,12 @@ import java.util.List;
            @Index(name = "idx_category", columnList = "category"),
            @Index(name = "idx_created_at", columnList = "createdAt"),
            @Index(name = "idx_deleted", columnList = "deleted"),
-           @Index(name = "idx_notice", columnList = "notice") // 공지사항 조회 최적화
+           @Index(name = "idx_notice", columnList = "notice"),
+           // 검색 성능 최적화를 위한 복합 인덱스
+           @Index(name = "idx_search_deleted_created", columnList = "deleted, createdAt"),
+           @Index(name = "idx_search_category_deleted", columnList = "category, deleted, createdAt"),
+           @Index(name = "idx_search_title_deleted", columnList = "title, deleted"),
+           @Index(name = "idx_author_deleted_created", columnList = "author_id, deleted, createdAt")
        })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

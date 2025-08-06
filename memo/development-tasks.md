@@ -147,27 +147,27 @@
 ## Day 4: 1순위 기능 - 검색 기능 및 통합 테스트
 
 ### 🔍 검색 기능 구현
-- [ ] **Red**: 키워드 검색 테스트 작성
-  - [ ] 제목 검색
-  - [ ] 내용 검색
-  - [ ] 작성자 검색
-  - [ ] 카테고리 검색
-  - [ ] 복합 검색
-- [ ] **Green**: SearchService 구현
-  - [ ] JPQL 쿼리 작성
-  - [ ] QueryDSL 적용 (선택사항)
-- [ ] **Refactor**: 검색 성능 최적화
+- [x] **Red**: 키워드 검색 테스트 작성
+  - [x] 제목 검색
+  - [x] 내용 검색
+  - [x] 작성자 검색
+  - [x] 카테고리 검색
+  - [x] 복합 검색
+- [x] **Green**: SearchService 구현
+  - [x] JPQL 쿼리 작성
+  - [x] QueryDSL 적용 (선택사항)
+- [x] **Refactor**: 검색 성능 최적화
 
 ### 🌐 Search MVC 구현
-- [ ] **Red**: SearchController 테스트
-- [ ] **Green**: GET /posts/search 구현
-- [ ] **Green**: 검색 폼 및 결과 페이지 (Thymeleaf)
-- [ ] **Refactor**: 검색 결과 형식 개선
+- [x] **Red**: SearchController 테스트
+- [x] **Green**: GET /posts/search 구현
+- [x] **Green**: 검색 폼 및 결과 페이지 (Thymeleaf)
+- [x] **Refactor**: 검색 결과 형식 개선
 
 ### 🧪 1순위 기능 통합 테스트
-- [ ] 전체 플로우 E2E 테스트
-- [ ] 성능 테스트 (기본 수준)
-- [ ] 에러 시나리오 테스트
+- [x] 전체 플로우 E2E 테스트
+- [x] 성능 테스트 (기본 수준)
+- [x] 에러 시나리오 테스트
 
 ---
 
