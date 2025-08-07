@@ -28,10 +28,10 @@ public class MarkdownService {
 
         // 마크다운 파싱
         Node document = parser.parse(markdown);
-
+        
         // HTML로 렌더링
         String html = renderer.render(document);
-
+        
         // XSS 방지를 위한 추가적인 처리는 여기서 할 수 있지만,
         // 마크다운 자체가 안전한 HTML을 생성하므로 기본적으로는 필요 없음
         return html;
@@ -58,18 +58,18 @@ public class MarkdownService {
 
         // 마크다운을 HTML로 변환
         String html = markdownToHtml(markdown);
-
+        
         // HTML 태그 제거
         String plainText = html.replaceAll("<[^>]*>", "");
-
+        
         // 연속된 공백 정리
         plainText = plainText.replaceAll("\\s+", " ").trim();
-
+        
         // 길이 제한
         if (plainText.length() > maxLength) {
             return plainText.substring(0, maxLength) + "...";
         }
-
+        
         return plainText;
     }
 
@@ -84,11 +84,11 @@ public class MarkdownService {
         // 마크다운 이미지 패턴: ![alt](url)
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("!\\[.*?\\]\\((.*?)\\)");
         java.util.regex.Matcher matcher = pattern.matcher(markdown);
-
+        
         if (matcher.find()) {
             return matcher.group(1);
         }
-
+        
         return null;
     }
 }

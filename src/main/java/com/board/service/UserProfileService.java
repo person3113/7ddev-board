@@ -57,7 +57,7 @@ public class UserProfileService {
 
         long postCount = postRepository.findByAuthorUsernameAndDeletedFalseOrderByCreatedAtDesc(username, Pageable.unpaged()).getTotalElements();
         long commentCount = commentRepository.findByAuthorUsernameAndDeletedFalseOrderByCreatedAtDesc(username, Pageable.unpaged()).getTotalElements();
-
+        
         return new UserStats(postCount, commentCount);
     }
 

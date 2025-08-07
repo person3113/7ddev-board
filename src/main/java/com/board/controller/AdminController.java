@@ -29,10 +29,10 @@ public class AdminController {
     @GetMapping
     public String adminDashboard(Authentication auth, Model model) {
         String username = auth.getName();
-
+        
         AdminService.AdminStats stats = adminService.getAdminStats(username);
         model.addAttribute("stats", stats);
-
+        
         return "admin/dashboard";
     }
 
@@ -49,16 +49,16 @@ public class AdminController {
             Model model) {
 
         String username = auth.getName();
-
+        
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
-
+        
         Page<Post> posts = adminService.getAllPosts(username, pageable);
         model.addAttribute("posts", posts);
         model.addAttribute("currentPage", page);
         model.addAttribute("sortBy", sortBy);
         model.addAttribute("sortDir", sortDir);
-
+        
         return "admin/posts";
     }
 
@@ -75,16 +75,16 @@ public class AdminController {
             Model model) {
 
         String username = auth.getName();
-
+        
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
-
+        
         Page<Comment> comments = adminService.getAllComments(username, pageable);
         model.addAttribute("comments", comments);
         model.addAttribute("currentPage", page);
         model.addAttribute("sortBy", sortBy);
         model.addAttribute("sortDir", sortDir);
-
+        
         return "admin/comments";
     }
 
@@ -101,17 +101,17 @@ public class AdminController {
             Model model) {
 
         String username = auth.getName();
-
+        
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
-
+        
         Page<User> users = adminService.getAllUsers(username, pageable);
         model.addAttribute("users", users);
         model.addAttribute("currentPage", page);
         model.addAttribute("sortBy", sortBy);
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("roles", Role.values());
-
+        
         return "admin/users";
     }
 
@@ -125,14 +125,14 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
 
         String username = auth.getName();
-
+        
         try {
             adminService.forceDeletePost(id, username);
             redirectAttributes.addFlashAttribute("successMessage", "게시글이 삭제되었습니다.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "게시글 삭제에 실패했습니다: " + e.getMessage());
         }
-
+        
         return "redirect:/admin/posts";
     }
 
@@ -146,14 +146,14 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
 
         String username = auth.getName();
-
+        
         try {
             adminService.forceDeleteComment(id, username);
             redirectAttributes.addFlashAttribute("successMessage", "댓글이 삭제되었습니다.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "댓글 삭제에 실패했습니다: " + e.getMessage());
         }
-
+        
         return "redirect:/admin/comments";
     }
 
@@ -168,14 +168,14 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
 
         String adminUsername = auth.getName();
-
+        
         try {
             adminService.changeUserRole(username, role, adminUsername);
             redirectAttributes.addFlashAttribute("successMessage", "사용자 권한이 변경되었습니다.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "권한 변경에 실패했습니다: " + e.getMessage());
         }
-
+        
         return "redirect:/admin/users";
     }
 }

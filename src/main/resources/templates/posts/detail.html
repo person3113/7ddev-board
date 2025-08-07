@@ -46,6 +46,11 @@
                                                 class="btn btn-outline-danger btn-sm"
                                                 onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
                                     </form>
+                                    <!-- 신고 버튼 -->
+                                    <button type="button" class="btn btn-outline-warning btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#reportModal">
+                                        <i class="bi bi-exclamation-triangle"></i> 신고
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -145,6 +150,44 @@
                             </form>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 신고 모달 -->
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reportModalLabel">게시글 신고</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reportForm">
+                        <div class="mb-3">
+                            <label for="reportReason" class="form-label">신고 사유</label>
+                            <select class="form-select" id="reportReason" name="reason" required>
+                                <option value="">선택하세요...</option>
+                                <option value="1">스팸/홍보성 게시글</option>
+                                <option value="2">욕설/비하 발언</option>
+                                <option value="3">음란물</option>
+                                <option value="4">기타</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="additionalInfoGroup" style="display: none;">
+                            <label for="additionalInfo" class="form-label">추가 정보</label>
+                            <textarea class="form-control" id="additionalInfo" name="additionalInfo" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reporterContact" class="form-label">신고자 연락처</label>
+                            <input type="text" class="form-control" id="reporterContact" name="reporterContact" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                    <button type="button" class="btn btn-primary" id="submitReportBtn">신고하기</button>
                 </div>
             </div>
         </div>
@@ -303,6 +346,52 @@
                 }
             }, 3000);
         }
+
+        // 신고 사유 선택 시 추가 정보 입력란 토글
+        document.getElementById('reportReason').addEventListener('change', function() {
+            const additionalInfoGroup = document.getElementById('additionalInfoGroup');
+            if (this.value === '4') { // '기타' 선택 시
+                additionalInfoGroup.style.display = 'block';
+            } else {
+                additionalInfoGroup.style.display = 'none';
+            }
+        });
+
+        // 신고하기 버튼 클릭 시 처리
+        document.getElementById('submitReportBtn').addEventListener('click', function() {
+            const form = document.getElementById('reportForm');
+            if (form.checkValidity()) {
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // 서버에 신고 내용 전송 (예: POST /posts/{postId}/report)
+                fetch(`/posts/${postId}/report`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showMessage('신고가 접수되었습니다. 감사합니다.', 'success');
+                        // 모달 닫기
+                        const reportModal = bootstrap.Modal.getInstance(document.getElementById('reportModal'));
+                        reportModal.hide();
+                    } else {
+                        showMessage(result.message || '신고 처리 중 오류가 발생했습니다.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('신고 처리 실패:', error);
+                    showMessage('신고 처리 중 오류가 발생했습니다.', 'error');
+                });
+            } else {
+                // 폼 유효성 검사 실패 시
+                form.reportValidity();
+            }
+        });
     </script>
 </body>
 </html>

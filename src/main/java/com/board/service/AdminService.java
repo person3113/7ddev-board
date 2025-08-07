@@ -30,7 +30,7 @@ public class AdminService {
     private void validateAdminRole(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + username));
-
+        
         if (user.getRole() != Role.ADMIN) {
             throw new UnauthorizedException("관리자 권한이 필요합니다");
         }
@@ -42,10 +42,10 @@ public class AdminService {
     @Transactional
     public void forceDeletePost(Long postId, String adminUsername) {
         validateAdminRole(adminUsername);
-
+        
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("게시글을 찾을 수 없습니다: " + postId));
-
+        
         post.delete();
         postRepository.save(post);
     }
@@ -56,10 +56,10 @@ public class AdminService {
     @Transactional
     public void forceDeleteComment(Long commentId, String adminUsername) {
         validateAdminRole(adminUsername);
-
+        
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("댓글을 찾을 수 없습니다: " + commentId));
-
+        
         comment.delete();
         commentRepository.save(comment);
     }
@@ -70,10 +70,10 @@ public class AdminService {
     @Transactional
     public void changeUserRole(String targetUsername, Role newRole, String adminUsername) {
         validateAdminRole(adminUsername);
-
+        
         User targetUser = userRepository.findByUsername(targetUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + targetUsername));
-
+        
         targetUser.changeRole(newRole);
         userRepository.save(targetUser);
     }
@@ -83,7 +83,7 @@ public class AdminService {
      */
     public Page<Post> getAllPosts(String adminUsername, Pageable pageable) {
         validateAdminRole(adminUsername);
-
+        
         return postRepository.findAll(pageable);
     }
 
@@ -92,7 +92,7 @@ public class AdminService {
      */
     public Page<Comment> getAllComments(String adminUsername, Pageable pageable) {
         validateAdminRole(adminUsername);
-
+        
         return commentRepository.findAll(pageable);
     }
 
@@ -101,7 +101,7 @@ public class AdminService {
      */
     public Page<User> getAllUsers(String adminUsername, Pageable pageable) {
         validateAdminRole(adminUsername);
-
+        
         return userRepository.findAll(pageable);
     }
 
@@ -110,13 +110,13 @@ public class AdminService {
      */
     public AdminStats getAdminStats(String adminUsername) {
         validateAdminRole(adminUsername);
-
+        
         long totalUsers = userRepository.count();
         long totalPosts = postRepository.count();
         long activePosts = postRepository.countByDeletedFalse();
         long totalComments = commentRepository.count();
         long activeComments = commentRepository.findByDeletedFalseOrderByCreatedAtDesc(Pageable.unpaged()).getTotalElements();
-
+        
         return new AdminStats(totalUsers, totalPosts, activePosts, totalComments, activeComments);
     }
 

@@ -246,32 +246,32 @@
 
 ### 🚨 신고 시스템 (시간 허용 시)
 #### 신고 관련 엔티티 구현
-- [ ] **Red**: ReportedPost 엔티티 테스트 작성
-- [ ] **Green**: ReportedPost 엔티티 구현
-- [ ] **Red**: ReportedComment 엔티티 테스트 작성
-- [ ] **Green**: ReportedComment 엔티티 구현
-- [ ] `ReportStatus` enum (PENDING, RESOLVED, DISMISSED) 구현
+- [x] **Red**: ReportedPost 엔티티 테스트 작성
+- [x] **Green**: ReportedPost 엔티티 구현
+- [x] **Red**: ReportedComment 엔티티 테스트 작성
+- [x] **Green**: ReportedComment 엔티티 구현
+- [x] `ReportStatus` enum (PENDING, RESOLVED, DISMISSED) 구현
 
 #### 신고 기능 구현
-- [ ] **Red**: 신고 기능 테스트
-- [ ] **Green**: ReportService 기본 구현
-- [ ] **Green**: 신고 버튼 및 폼 UI
-- [ ] **Refactor**: 신고 처리 로직
+- [x] **Red**: 신고 기능 테스트
+- [x] **Green**: ReportService 기본 구현
+- [x] **Green**: 신고 버튼 및 폼 UI
+- [x] **Refactor**: 신고 처리 로직
 
 ### 🚀 배포 준비
-- [ ] **프로덕션 설정**
-  - [ ] MySQL 연결 설정
-  - [ ] 환경별 프로파일 분리
-  - [ ] 로깅 설정 개선
+- [x] **프로덕션 설정**
+  - [x] MySQL 연결 설정
+  - [x] 환경별 프로파일 분리
+  - [x] 로깅 설정 개선
 
-- [ ] **Docker 설정** (선택사항)
-  - [ ] Dockerfile 작성
-  - [ ] docker-compose.yml 작성
+- [x] **Docker 설정** (선택사항)
+  - [x] Dockerfile 작성
+  - [x] docker-compose.yml 작성
 
-- [ ] **최종 테스트 및 문서화**
-  - [ ] 전체 기능 테스트
-  - [ ] 배포 가이드 작성
-  - [ ] 사용자 가이드 작성 (간단한 README)
+- [x] **최종 테스트 및 문서화**
+  - [x] 전체 기능 테스트
+  - [x] 배포 가이드 작성
+  - [x] 사용자 가이드 작성 (간단한 README)
 
 ---
 

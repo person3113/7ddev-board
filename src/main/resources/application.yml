@@ -3,14 +3,57 @@ spring:
   profiles:
     active: dev
 
-  # 데이터베이스 설정 (개발 환경 - H2)
+  # 데이터 JPA 감사 기능 활성화
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        dialect: org.hibernate.dialect.H2Dialect
+    show-sql: true
+
+  # Thymeleaf 설정
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+
+# 로깅 설정
+logging:
+  level:
+    com.board: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 관리자 기본 계정 설정
+admin:
+  username: admin
+  password: admin123!
+  email: admin@board.com
+  nickname: 관리자
+
+---
+# 개발 환경 설정
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  # H2 데이터베이스 설정
   datasource:
     url: jdbc:h2:mem:devdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password:
     driver-class-name: org.h2.Driver
 
-  # H2 콘솔 설정 (개발용)
+  # H2 콘솔 설정
   h2:
     console:
       enabled: true
@@ -18,70 +61,97 @@ spring:
       settings:
         web-allow-others: false
 
-  # JPA 설정
   jpa:
     hibernate:
-      ddl-auto: update  # 개발 시 테이블 자동 생성/삭제
+      ddl-auto: create-drop
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
         use_sql_comments: true
+    show-sql: true
 
-  # Thymeleaf 설정
-  thymeleaf:
-    cache: false  # 개발 시 캐시 비활성화
-    prefix: classpath:/templates/
-    suffix: .html
-    encoding: UTF-8
-    servlet:
-      content-type: text/html
-
-# 로깅 설정
 logging:
   level:
-    org.hibernate.SQL: debug
-    org.hibernate.type.descriptor.sql.BasicBinder: trace  # 바인딩 파라미터 출력
-    org.springframework.web: debug
-    com.board: debug  # 프로젝트 패키지 로깅
-  pattern:
-    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    com.board: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
 
 ---
-# 프로덕션 환경 설정 (배포용)
+# 프로덕션 환경 설정
 spring:
   config:
     activate:
       on-profile: prod
 
-  # MySQL 설정 (배포용)
+  # MySQL 데이터베이스 설정
   datasource:
-    url: jdbc:mysql://localhost:3306/board_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/board_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${DB_USERNAME:board_user}
     password: ${DB_PASSWORD:board_password}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
 
-  # H2 콘솔 비활성화
-  h2:
-    console:
-      enabled: false
-
-  # JPA 설정 (프로덕션)
   jpa:
     hibernate:
-      ddl-auto: validate  # 프로덕션에서는 스키마 검증만
+      ddl-auto: validate  # 프로덕션에서는 validate 사용
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: false
+        use_sql_comments: false
+    show-sql: false
 
-  # Thymeleaf 설정 (프로덕션)
+  # Thymeleaf 캐시 활성화
   thymeleaf:
-    cache: true  # 프로덕션에서는 캐시 활성화
+    cache: true
 
-# 로깅 설정 (프로덕션)
+# 프로덕션 로깅 설정
 logging:
   level:
-    org.hibernate.SQL: warn
-    org.springframework.web: warn
-    com.board: info
+    com.board: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    root: WARN
   file:
-    name: logs/board-app.log
+    name: logs/board-application.log
+    max-size: 100MB
+    max-history: 30
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+# 테스트 환경 설정
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  # 테스트용 H2 설정
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+        use_sql_comments: false
+    show-sql: false
+
+logging:
+  level:
+    com.board: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    root: WARN
