@@ -39,6 +39,10 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    // 마크다운 지원을 위한 필드 추가
+    @Column(nullable = false)
+    private Boolean isMarkdown = false;
+
     @Column(length = 50)
     private String category;
 
@@ -74,7 +78,7 @@ public class Post {
     private List<Comment> comments = new ArrayList<>();
 
     @Builder
-    public Post(String title, String content, String category, User author, Boolean isNotice) {
+    public Post(String title, String content, String category, User author, Boolean isNotice, Boolean isMarkdown) {
         validateTitle(title);
         validateContent(content);
         validateAuthor(author);
@@ -87,17 +91,19 @@ public class Post {
         this.likeCount = 0;
         this.deleted = false;
         this.isNotice = isNotice != null ? isNotice : false;
+        this.isMarkdown = isMarkdown != null ? isMarkdown : false;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void update(String title, String content, String category) {
+    public void update(String title, String content, String category, Boolean isMarkdown) {
         validateTitle(title);
         validateContent(content);
 
         this.title = title;
         this.content = content;
         this.category = category;
+        this.isMarkdown = isMarkdown != null ? isMarkdown : false;
         this.updatedAt = LocalDateTime.now();
     }
 

@@ -30,6 +30,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-security'  // Spring Security 활성화
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'  // Thymeleaf Security 추가
+	implementation 'org.commonmark:commonmark:0.21.0'  // 마크다운 파싱 라이브러리
+	implementation 'org.owasp.encoder:encoder:1.2.3'  // XSS 방지 라이브러리
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
 	runtimeOnly 'com.mysql:mysql-connector-j'  // MySQL Connector 추가 (배포용)

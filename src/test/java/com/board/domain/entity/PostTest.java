@@ -132,7 +132,7 @@ class PostTest {
         String newCategory = "공지사항";
 
         // when
-        post.update(newTitle, newContent, newCategory);
+        post.update(newTitle, newContent, newCategory, false);
 
         // then
         assertThat(post.getTitle()).isEqualTo(newTitle);

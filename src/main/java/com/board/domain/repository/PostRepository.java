@@ -49,6 +49,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     long countByDeletedFalse();
 
     /**
+     * 사용자명으로 게시글 조회 (삭제되지 않은 것만)
+     */
+    Page<Post> findByAuthorUsernameAndDeletedFalseOrderByCreatedAtDesc(String username, Pageable pageable);
+
+    /**
      * 카테고리별 게시글 수 (삭제되지 않은 것만)
      */
     long countByCategoryAndDeletedFalse(String category);

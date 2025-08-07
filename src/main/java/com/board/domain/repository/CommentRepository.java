@@ -52,9 +52,9 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     long countByParentAndDeletedFalse(Comment parent);
 
     /**
-     * 사용자별 댓글 수 조회 (삭제되지 않은 것만)
+     * 사용자명으로 댓글 조회 (삭제되지 않은 것만)
      */
-    long countByAuthorAndDeletedFalse(User author);
+    Page<Comment> findByAuthorUsernameAndDeletedFalseOrderByCreatedAtDesc(String username, Pageable pageable);
 
     /**
      * 최근 댓글 조회 (전체, 삭제되지 않은 것만)

@@ -222,23 +222,23 @@
 ## Day 6: 2순위 기능 완성 및 3순위 기능 시작
 
 ### 📝 마크다운 지원 (시간 허용 시)
-- [ ] 마크다운 라이브러리 추가
-- [ ] 게시글 작성 시 마크다운 변환
-- [ ] XSS 방지 처리
+- [x] 마크다운 라이브러리 추가
+- [x] 게시글 작성 시 마크다운 변환
+- [x] XSS 방지 처리
 
 ### 👤 사용자별 게시글/댓글 모아보기
-- [ ] **Red**: 사용자 프로필 조회 테스트
-- [ ] **Green**: UserProfileService 구현
-- [ ] **Green**: GET /users/{username} 페이지 구현
-- [ ] **Refactor**: 조회 성능 개선
+- [x] **Red**: 사용자 프로필 조회 테스트
+- [x] **Green**: UserProfileService 구현
+- [x] **Green**: GET /users/{username} 페이지 구현
+- [x] **Refactor**: 조회 성능 개선
 
 ### 🔒 기본 관리자 기능
-- [ ] **Red**: 관리자 권한 테스트
-- [ ] **Green**: AdminService 기본 구현
-  - [ ] 게시글/댓글 강제 삭제
-  - [ ] 사용자 권한 변경 (기본만)
-- [ ] **Green**: 관리자 페이지 (Thymeleaf)
-- [ ] **Refactor**: 권한 체계 개선
+- [x] **Red**: 관리자 권한 테스트
+- [x] **Green**: AdminService 기본 구현
+  - [x] 게시글/댓글 강제 삭제
+  - [x] 사용자 권한 변경 (기본만)
+- [x] **Green**: 관리자 페이지 (Thymeleaf)
+- [x] **Refactor**: 권한 체계 개선
 
 ---
 

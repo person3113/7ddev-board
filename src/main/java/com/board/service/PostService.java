@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final MarkdownService markdownService;
 
     /**
      * 게시글 생성
@@ -46,6 +47,36 @@ public class PostService {
 
         Post savedPost = postRepository.save(post);
         log.info("게시글 생성 완료 - ID: {}, 제목: {}", savedPost.getId(), savedPost.getTitle());
+
+        return savedPost;
+    }
+
+    /**
+     * 게시글 생성 (마크다운 지원)
+     *
+     * @param title 게시글 제목 (필수, 200자 이하)
+     * @param content 게시글 내용 (필수)
+     * @param category 카테고리 (선택)
+     * @param author 작성자 (필수)
+     * @param isMarkdown 마크다운 사용 여부
+     * @return 생성된 게시글
+     * @throws IllegalArgumentException 필수 필드가 누락되거나 유효하지 않은 경우
+     */
+    public Post createPost(String title, String content, String category, User author, Boolean isMarkdown) {
+        log.debug("게시글 생성 요청 - 제목: {}, 작성자: {}, 마크다운: {}",
+                title, author != null ? author.getUsername() : "null", isMarkdown);
+
+        Post post = Post.builder()
+                .title(title)
+                .content(content)
+                .category(category)
+                .author(author)
+                .isMarkdown(isMarkdown)
+                .build();
+
+        Post savedPost = postRepository.save(post);
+        log.info("게시글 생성 완료 - ID: {}, 제목: {}, 마크다운: {}",
+                savedPost.getId(), savedPost.getTitle(), savedPost.getIsMarkdown());
 
         return savedPost;
     }
@@ -98,10 +129,41 @@ public class PostService {
             throw new IllegalArgumentException("게시글을 수정할 권한이 없습니다");
         }
 
-        post.update(title, content, category);
+        post.update(title, content, category, post.getIsMarkdown());
         Post updatedPost = postRepository.save(post);
 
         log.info("게시글 수정 완료 - ID: {}, 제목: {}", updatedPost.getId(), updatedPost.getTitle());
+        return updatedPost;
+    }
+
+    /**
+     * 게시글 수정 (마크다운 지원)
+     *
+     * @param id 수정할 게시글 ID
+     * @param title 새로운 제목
+     * @param content 새로운 내용
+     * @param category 새로운 카테고리
+     * @param isMarkdown 마크다운 사용 여부
+     * @param requestUser 수정 요청자
+     * @return 수정된 게시글
+     * @throws IllegalArgumentException 권한이 없거나 게시글이 존재하지 않는 경우
+     */
+    public Post updatePost(Long id, String title, String content, String category, Boolean isMarkdown, User requestUser) {
+        log.debug("게시글 수정 요청 - ID: {}, 요청자: {}, 마크다운: {}", id, requestUser.getUsername(), isMarkdown);
+
+        Post post = findById(id);
+
+        if (!post.canEdit(requestUser)) {
+            log.warn("게시글 수정 권한 없음 - 게시글 ID: {}, 요청자: {}, 작성자: {}",
+                    id, requestUser.getUsername(), post.getAuthor().getUsername());
+            throw new IllegalArgumentException("게시글을 수정할 권한이 없습니다");
+        }
+
+        post.update(title, content, category, isMarkdown);
+        Post updatedPost = postRepository.save(post);
+
+        log.info("게시글 수정 완료 - ID: {}, 제목: {}, 마크다운: {}",
+                updatedPost.getId(), updatedPost.getTitle(), updatedPost.getIsMarkdown());
         return updatedPost;
     }
 
@@ -175,5 +237,34 @@ public class PostService {
             case "likeCount" -> postRepository.findByDeletedFalseOrderByLikeCountDescCreatedAtDesc(pageable);
             default -> postRepository.findByDeletedFalseOrderByCreatedAtDesc(pageable); // 기본: 최신순
         };
+    }
+
+    /**
+     * 게시글 내용을 렌더링된 HTML로 반환
+     * 마크다운이면 HTML로 변환, 아니면 XSS 방지 처리된 텍스트 반환
+     */
+    @Transactional(readOnly = true)
+    public String getRenderedContent(Post post) {
+        if (post.getIsMarkdown()) {
+            return markdownService.markdownToHtml(post.getContent());
+        } else {
+            return markdownService.escapeHtml(post.getContent());
+        }
+    }
+
+    /**
+     * 게시글 내용의 미리보기 텍스트 생성 (HTML 태그 제거)
+     */
+    @Transactional(readOnly = true)
+    public String getContentPreview(Post post, int maxLength) {
+        if (post.getIsMarkdown()) {
+            return markdownService.getPlainTextPreview(post.getContent(), maxLength);
+        } else {
+            String content = post.getContent();
+            if (content.length() > maxLength) {
+                return content.substring(0, maxLength) + "...";
+            }
+            return content;
+        }
     }
 }
