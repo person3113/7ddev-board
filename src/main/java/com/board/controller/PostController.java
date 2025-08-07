@@ -4,6 +4,9 @@ import com.board.domain.entity.Post;
 import com.board.domain.entity.User;
 import com.board.domain.repository.UserRepository;
 import com.board.service.PostService;
+import com.board.service.LikeService;
+import com.board.service.ViewService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -23,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Post MVC 컨트롤러
@@ -38,6 +43,8 @@ public class PostController {
 
     private final PostService postService;
     private final UserRepository userRepository;
+    private final LikeService likeService;
+    private final ViewService viewService;
 
     /**
      * 게시글 목록 조회
@@ -67,17 +74,22 @@ public class PostController {
      * GET /posts/{id}
      */
     @GetMapping("/{id}")
-    public String getPost(@PathVariable Long id, Model model) {
+    public String getPost(@PathVariable Long id, Model model, HttpServletRequest request) {
         log.debug("게시글 상세 조회 요청 - ID: {}", id);
 
         try {
             Post post = postService.findById(id);
-            // 조회수 증가
-            post = postService.increaseViewCount(id);
+
+            // ViewService를 사용하여 조회수 증가 (중복 조회 방지)
+            viewService.increaseViewCount(id, request);
+
+            // 조회수가 증가된 후 다시 조회
+            post = postService.findById(id);
 
             model.addAttribute("post", post);
 
-            log.debug("게시글 상세 조회 완료 - ID: {}, 제목: {}", post.getId(), post.getTitle());
+            log.debug("게시글 상세 조회 완료 - ID: {}, 제목: {}, 조회수: {}",
+                     post.getId(), post.getTitle(), post.getViewCount());
             return "posts/detail";
         } catch (IllegalArgumentException e) {
             log.warn("게시글 조회 실패 - ID: {}, 오류: {}", id, e.getMessage());
@@ -243,6 +255,149 @@ public class PostController {
             } else {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
             }
+        }
+    }
+
+    /**
+     * 게시글 추천
+     * POST /posts/{id}/like
+     */
+    @PostMapping("/{id}/like")
+    @ResponseBody
+    public Map<String, Object> likePost(@PathVariable Long id, HttpServletRequest request) {
+        log.debug("게시글 추천 요청 - ID: {}", id);
+
+        try {
+            // 임시로 사용자 ID 1 사용 (실제로는 인증된 사용자 정보 사용)
+            Long userId = 1L;
+
+            likeService.likePost(id, userId);
+
+            // 현재 추천 수와 사용자 추천 상태 조회
+            Long likeCount = likeService.getLikeCount(id);
+            Boolean userLikeStatus = likeService.getUserLikeStatus(id, userId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("likeCount", likeCount);
+            response.put("userLikeStatus", userLikeStatus);
+
+            log.debug("게시글 추천 완료 - ID: {}, 추천수: {}", id, likeCount);
+            return response;
+        } catch (Exception e) {
+            log.error("게시글 추천 실패 - ID: {}, 오류: {}", id, e.getMessage());
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return response;
+        }
+    }
+
+    /**
+     * 게시글 비추천
+     * POST /posts/{id}/dislike
+     */
+    @PostMapping("/{id}/dislike")
+    @ResponseBody
+    public Map<String, Object> dislikePost(@PathVariable Long id, HttpServletRequest request) {
+        log.debug("게시글 비추천 요청 - ID: {}", id);
+
+        try {
+            // 임시로 사용자 ID 1 사용 (실제로는 인증된 사용자 정보 사용)
+            Long userId = 1L;
+
+            likeService.dislikePost(id, userId);
+
+            // 현재 추천 수와 사용자 추천 상태 조회
+            Long likeCount = likeService.getLikeCount(id);
+            Long dislikeCount = likeService.getDislikeCount(id);
+            Boolean userLikeStatus = likeService.getUserLikeStatus(id, userId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("likeCount", likeCount);
+            response.put("dislikeCount", dislikeCount);
+            response.put("userLikeStatus", userLikeStatus);
+
+            log.debug("게시글 비추천 완료 - ID: {}, 추천수: {}, 비추천수: {}", id, likeCount, dislikeCount);
+            return response;
+        } catch (Exception e) {
+            log.error("게시글 비추천 실패 - ID: {}, 오류: {}", id, e.getMessage());
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return response;
+        }
+    }
+
+    /**
+     * 추천/비추천 취소
+     * DELETE /posts/{id}/like
+     */
+    @DeleteMapping("/{id}/like")
+    @ResponseBody
+    public Map<String, Object> cancelLike(@PathVariable Long id, HttpServletRequest request) {
+        log.debug("추천/비추천 취소 요청 - ID: {}", id);
+
+        try {
+            // 임시로 사용자 ID 1 사용 (실제로는 인증된 사용자 정보 사용)
+            Long userId = 1L;
+
+            likeService.cancelLike(id, userId);
+
+            // 현재 추천 수와 사용자 추천 상태 조회
+            Long likeCount = likeService.getLikeCount(id);
+            Long dislikeCount = likeService.getDislikeCount(id);
+            Boolean userLikeStatus = likeService.getUserLikeStatus(id, userId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("likeCount", likeCount);
+            response.put("dislikeCount", dislikeCount);
+            response.put("userLikeStatus", userLikeStatus);
+
+            log.debug("추천/비추천 취소 완료 - ID: {}, 추천수: {}, 비추천수: {}", id, likeCount, dislikeCount);
+            return response;
+        } catch (Exception e) {
+            log.error("추천/비추천 취소 실패 - ID: {}, 오류: {}", id, e.getMessage());
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return response;
+        }
+    }
+
+    /**
+     * 사용자 추천 상태 조회
+     * GET /posts/{id}/like-status
+     */
+    @GetMapping("/{id}/like-status")
+    @ResponseBody
+    public Map<String, Object> getLikeStatus(@PathVariable Long id, HttpServletRequest request) {
+        log.debug("사용자 추천 상태 조회 요청 - ID: {}", id);
+
+        try {
+            // 임시로 사용자 ID 1 사용 (실제로는 인증된 사용자 정보 사용)
+            Long userId = 1L;
+
+            Long likeCount = likeService.getLikeCount(id);
+            Long dislikeCount = likeService.getDislikeCount(id);
+            Boolean userLikeStatus = likeService.getUserLikeStatus(id, userId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("likeCount", likeCount);
+            response.put("dislikeCount", dislikeCount);
+            response.put("userLikeStatus", userLikeStatus);
+
+            log.debug("사용자 추천 상태 조회 완료 - ID: {}, 상태: {}", id, userLikeStatus);
+            return response;
+        } catch (Exception e) {
+            log.error("사용자 추천 상태 조회 실패 - ID: {}, 오류: {}", id, e.getMessage());
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return response;
         }
     }
 

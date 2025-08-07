@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${post.title} + ' - 7일 게시판'">게시글 상세 - 7일 게시판</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
 </head>
 <body>
     <div class="container mt-4">
@@ -48,92 +49,100 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 게시글 메타 정보 -->
-                    <div class="card-body border-bottom">
-                        <div class="row text-muted small">
-                            <div class="col-sm-6">
-                                <i class="bi bi-person"></i> 작성자:
-                                <span th:text="${post.author.nickname}"></span>
-                            </div>
-                            <div class="col-sm-6 text-sm-end">
-                                <i class="bi bi-clock"></i> 작성일:
-                                <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
-                            </div>
-                        </div>
-                        <div class="row text-muted small mt-1">
-                            <div class="col-sm-6">
-                                <i class="bi bi-eye"></i> 조회수:
-                                <span th:text="${post.viewCount}"></span>
-                            </div>
-                            <div class="col-sm-6 text-sm-end" th:if="${post.updatedAt != post.createdAt}">
-                                <i class="bi bi-pencil"></i> 수정일:
-                                <span th:text="${#temporals.format(post.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+                        <!-- 게시글 메타 정보 -->
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="row text-muted small">
+                                <div class="col-md-6">
+                                    <i class="bi bi-person-circle"></i> <span th:text="${post.author.nickname}">작성자</span>
+                                    <span class="mx-2">•</span>
+                                    <i class="bi bi-calendar"></i> <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <i class="bi bi-eye"></i> 조회수 <span th:text="${post.viewCount}" id="viewCount">0</span>
+                                    <span class="mx-2">•</span>
+                                    <i class="bi bi-hand-thumbs-up"></i> 추천 <span th:text="${post.likeCount}" id="likeCount">0</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- 게시글 내용 -->
                     <div class="card-body">
-                        <div class="post-content" style="min-height: 200px; line-height: 1.6;">
-                            <p th:text="${post.content}" style="white-space: pre-wrap;"></p>
-                        </div>
+                        <div th:utext="${#strings.replace(#strings.escapeXml(post.content), T(System).lineSeparator(), '&lt;br/&gt;')}"
+                             class="post-content" style="min-height: 200px; line-height: 1.6;"></div>
                     </div>
 
-                    <!-- 게시글 액션 버튼 -->
-                    <div class="card-footer">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <!-- 추천/비추천 버튼 (향후 구현) -->
-                                <button class="btn btn-outline-success btn-sm" disabled>
-                                    <i class="bi bi-hand-thumbs-up"></i> 추천
-                                    <span class="badge bg-success" th:text="${post.likeCount}"></span>
-                                </button>
-                            </div>
-                            <div>
-                                <a href="/posts" class="btn btn-secondary">목록으로</a>
-                            </div>
+                    <!-- 추천/비추천 버튼 -->
+                    <div class="card-footer text-center py-3">
+                        <div class="btn-group" role="group" aria-label="추천 버튼">
+                            <button type="button"
+                                    class="btn btn-outline-success"
+                                    id="likeBtn"
+                                    onclick="toggleLike()">
+                                <i class="bi bi-hand-thumbs-up"></i>
+                                추천 <span id="likeCountBtn" th:text="${post.likeCount}">0</span>
+                            </button>
+                            <button type="button"
+                                    class="btn btn-outline-danger"
+                                    id="dislikeBtn"
+                                    onclick="toggleDislike()">
+                                <i class="bi bi-hand-thumbs-down"></i>
+                                비추천 <span id="dislikeCountBtn">0</span>
+                            </button>
+                        </div>
+
+                        <!-- 취소 버튼 (추천/비추천 상태일 때만 표시) -->
+                        <div class="mt-2">
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm d-none"
+                                    id="cancelBtn"
+                                    onclick="cancelLike()">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                취소
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 댓글 섹션 -->
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            댓글
-                            <span class="badge bg-primary" id="comment-count">0</span>
-                        </h5>
+                <div class="mt-4">
+                    <h5>댓글</h5>
+                    <div th:if="${post.comments != null and !post.comments.empty}">
+                        <div th:each="comment : ${post.comments}"
+                             th:if="!${comment.deleted}"
+                             class="card mt-2">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="card-subtitle mb-2 text-muted" th:text="${comment.author.nickname}">댓글 작성자</h6>
+                                        <p class="card-text" th:text="${comment.content}">댓글 내용</p>
+                                        <small class="text-muted" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</small>
+                                    </div>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-outline-primary">수정</button>
+                                        <button type="button" class="btn btn-outline-danger">삭제</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <!-- 댓글 작성 폼 -->
-                        <div class="mb-4">
-                            <form id="comment-form">
+
+                    <!-- 댓글 작성 폼 -->
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h6>댓글 작성</h6>
+                            <form th:action="@{/posts/{postId}/comments(postId=${post.id})}" method="post">
                                 <div class="mb-3">
-                                    <textarea id="comment-content"
-                                              class="form-control"
+                                    <textarea class="form-control"
+                                              name="content"
                                               rows="3"
                                               placeholder="댓글을 입력하세요..."
                                               required></textarea>
                                 </div>
-                                <div class="text-end">
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        댓글 등록
-                                    </button>
-                                </div>
+                                <input type="hidden" name="authorId" value="1">
+                                <button type="submit" class="btn btn-primary">댓글 작성</button>
                             </form>
-                        </div>
-
-                        <!-- 댓글 목록 -->
-                        <div id="comment-list">
-                            <div id="no-comments" class="text-center text-muted py-4" style="display: none;">
-                                첫 번째 댓글을 작성해보세요!
-                            </div>
-                        </div>
-
-                        <!-- 댓글 페이징 -->
-                        <div id="comment-pagination" class="d-flex justify-content-center mt-3">
                         </div>
                     </div>
                 </div>
@@ -142,247 +151,157 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // 현재 게시글 ID와 사용자 ID (임시로 하드코딩)
+    <script th:inline="javascript">
+        // 게시글 ID를 JavaScript 변수로 전달
         const postId = /*[[${post.id}]]*/ 1;
-        const currentUserId = 1; // 임시 사용자 ID (추후 세션에서 가져오기)
-        let currentPage = 0;
 
-        // 페이지 로드 시 댓글 목록 불러오기
+        // 페이지 로드 시 사용자의 추천 상태 확인
         document.addEventListener('DOMContentLoaded', function() {
-            loadComments();
+            loadLikeStatus();
         });
 
-        // 댓글 목록 불러오기
-        function loadComments(page = 0) {
-            fetch(`/posts/${postId}/comments?page=${page}&size=10`)
+        // 사용자 추천 상태 로드
+        function loadLikeStatus() {
+            fetch(`/posts/${postId}/like-status`)
                 .then(response => response.json())
                 .then(data => {
-                    displayComments(data.content);
-                    updateCommentCount(data.totalElements);
-                    displayPagination(data);
+                    if (data.success) {
+                        updateUI(data.likeCount, data.dislikeCount, data.userLikeStatus);
+                    }
                 })
                 .catch(error => {
-                    console.error('댓글 로딩 오류:', error);
+                    console.error('추천 상태 로드 실패:', error);
                 });
         }
 
-        // 댓글 표시
-        function displayComments(comments) {
-            const commentList = document.getElementById('comment-list');
-            const noComments = document.getElementById('no-comments');
-
-            if (comments.length === 0) {
-                noComments.style.display = 'block';
-                commentList.innerHTML = '';
-                commentList.appendChild(noComments);
-                return;
-            }
-
-            noComments.style.display = 'none';
-            commentList.innerHTML = '';
-
-            comments.forEach(comment => {
-                const commentElement = createCommentElement(comment);
-                commentList.appendChild(commentElement);
-            });
-        }
-
-        // 댓글 HTML 요소 생성
-        function createCommentElement(comment) {
-            const div = document.createElement('div');
-            div.className = 'border-bottom pb-3 mb-3';
-            div.innerHTML = `
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <strong>${comment.author.nickname}</strong>
-                        <small class="text-muted ms-2">${formatDate(comment.createdAt)}</small>
-                        ${comment.parent ? '<span class="badge bg-secondary ms-1">답글</span>' : ''}
-                    </div>
-                    <div>
-                        <button class="btn btn-outline-success btn-sm me-1" onclick="likeComment(${comment.id})">
-                            <i class="bi bi-hand-thumbs-up"></i>
-                            <span>${comment.likeCount}</span>
-                        </button>
-                        ${!comment.parent ? `<button class="btn btn-outline-info btn-sm me-1" onclick="toggleReplyForm(${comment.id})">답글</button>` : ''}
-                        ${comment.author.id === currentUserId ? `
-                            <button class="btn btn-outline-warning btn-sm me-1" onclick="editComment(${comment.id})">수정</button>
-                            <button class="btn btn-outline-danger btn-sm" onclick="deleteComment(${comment.id})">삭제</button>
-                        ` : ''}
-                    </div>
-                </div>
-                <div class="mt-2" style="white-space: pre-wrap;">${comment.content}</div>
-                <div id="reply-form-${comment.id}" style="display: none;" class="mt-3">
-                    <form onsubmit="submitReply(event, ${comment.id})">
-                        <div class="mb-2">
-                            <textarea class="form-control" rows="2" placeholder="답글을 입력하세요..." required></textarea>
-                        </div>
-                        <div class="text-end">
-                            <button type="button" class="btn btn-secondary btn-sm me-1" onclick="toggleReplyForm(${comment.id})">취소</button>
-                            <button type="submit" class="btn btn-primary btn-sm">답글 등록</button>
-                        </div>
-                    </form>
-                </div>
-            `;
-            return div;
-        }
-
-        // 댓글 개수 업데이트
-        function updateCommentCount(count) {
-            document.getElementById('comment-count').textContent = count;
-        }
-
-        // 페이징 표시
-        function displayPagination(pageData) {
-            const pagination = document.getElementById('comment-pagination');
-            if (pageData.totalPages <= 1) {
-                pagination.innerHTML = '';
-                return;
-            }
-
-            let paginationHtml = '<nav><ul class="pagination pagination-sm">';
-
-            // 이전 페이지
-            if (pageData.hasPrevious) {
-                paginationHtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadComments(${pageData.number - 1})">이전</a></li>`;
-            }
-
-            // 페이지 번호들
-            for (let i = 0; i < pageData.totalPages; i++) {
-                const isActive = i === pageData.number ? 'active' : '';
-                paginationHtml += `<li class="page-item ${isActive}"><a class="page-link" href="#" onclick="loadComments(${i})">${i + 1}</a></li>`;
-            }
-
-            // 다음 페이지
-            if (pageData.hasNext) {
-                paginationHtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadComments(${pageData.number + 1})">다음</a></li>`;
-            }
-
-            paginationHtml += '</ul></nav>';
-            pagination.innerHTML = paginationHtml;
-        }
-
-        // 댓글 작성
-        document.getElementById('comment-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const content = document.getElementById('comment-content').value.trim();
-            if (!content) return;
-
-            fetch(`/posts/${postId}/comments`, {
+        // 추천 버튼 클릭
+        function toggleLike() {
+            fetch(`/posts/${postId}/like`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    content: content,
-                    authorId: currentUserId
-                })
+                }
             })
-            .then(response => {
-                if (response.ok) {
-                    document.getElementById('comment-content').value = '';
-                    loadComments(0); // 첫 페이지로 이동
-                    alert('댓글이 등록되었습니다.');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateUI(data.likeCount, data.dislikeCount, data.userLikeStatus);
+                    showMessage('추천했습니다!', 'success');
                 } else {
-                    alert('댓글 등록에 실패했습니다.');
+                    showMessage(data.message || '추천 처리 중 오류가 발생했습니다.', 'error');
                 }
             })
             .catch(error => {
-                console.error('댓글 등록 오류:', error);
-                alert('댓글 등록 중 오류가 발생했습니다.');
+                console.error('추천 처리 실패:', error);
+                showMessage('추천 처리 중 오류가 발생했습니다.', 'error');
             });
-        });
-
-        // 답글 폼 토글
-        function toggleReplyForm(commentId) {
-            const replyForm = document.getElementById(`reply-form-${commentId}`);
-            replyForm.style.display = replyForm.style.display === 'none' ? 'block' : 'none';
         }
 
-        // 답글 작성
-        function submitReply(event, parentId) {
-            event.preventDefault();
-
-            const form = event.target;
-            const content = form.querySelector('textarea').value.trim();
-            if (!content) return;
-
-            fetch(`/comments/${parentId}/replies`, {
+        // 비추천 버튼 클릭
+        function toggleDislike() {
+            fetch(`/posts/${postId}/dislike`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    content: content,
-                    authorId: currentUserId
-                })
+                }
             })
-            .then(response => {
-                if (response.ok) {
-                    form.querySelector('textarea').value = '';
-                    toggleReplyForm(parentId);
-                    loadComments(currentPage);
-                    alert('답글이 등록되었습니다.');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateUI(data.likeCount, data.dislikeCount, data.userLikeStatus);
+                    showMessage('비추천했습니다!', 'warning');
                 } else {
-                    alert('답글 등록에 실패했습니다.');
+                    showMessage(data.message || '비추천 처리 중 오류가 발생했습니다.', 'error');
                 }
             })
             .catch(error => {
-                console.error('답글 등록 오류:', error);
-                alert('답글 등록 중 오류가 발생했습니다.');
+                console.error('비추천 처리 실패:', error);
+                showMessage('비추천 처리 중 오류가 발생했습니다.', 'error');
             });
         }
 
-        // 댓글 삭제
-        function deleteComment(commentId) {
-            if (!confirm('정말 삭제하시겠습니까?')) return;
-
-            fetch(`/comments/${commentId}`, {
+        // 추천/비추천 취소
+        function cancelLike() {
+            fetch(`/posts/${postId}/like`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    authorId: currentUserId
-                })
+                }
             })
-            .then(response => {
-                if (response.ok) {
-                    loadComments(currentPage);
-                    alert('댓글이 삭제되었습니다.');
-                } else if (response.status === 403) {
-                    alert('삭제 권한이 없습니다.');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateUI(data.likeCount, data.dislikeCount, data.userLikeStatus);
+                    showMessage('취소했습니다!', 'info');
                 } else {
-                    alert('댓글 삭제에 실패했습니다.');
+                    showMessage(data.message || '취소 처리 중 오류가 발생했습니다.', 'error');
                 }
             })
             .catch(error => {
-                console.error('댓글 삭제 오류:', error);
-                alert('댓글 삭제 중 오류가 발생했습니다.');
+                console.error('취소 처리 실패:', error);
+                showMessage('취소 처리 중 오류가 발생했습니다.', 'error');
             });
         }
 
-        // 날짜 포맷팅
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleString('ko-KR', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+        // UI 업데이트
+        function updateUI(likeCount, dislikeCount, userLikeStatus) {
+            // 추천 수 업데이트
+            document.getElementById('likeCount').textContent = likeCount;
+            document.getElementById('likeCountBtn').textContent = likeCount;
+            document.getElementById('dislikeCountBtn').textContent = dislikeCount || 0;
+
+            // 버튼 상태 업데이트
+            const likeBtn = document.getElementById('likeBtn');
+            const dislikeBtn = document.getElementById('dislikeBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+
+            // 모든 버튼 초기화
+            likeBtn.className = 'btn btn-outline-success';
+            dislikeBtn.className = 'btn btn-outline-danger';
+            cancelBtn.classList.add('d-none');
+
+            // 사용자 상태에 따른 버튼 스타일 변경
+            if (userLikeStatus === true) {
+                // 추천한 상태
+                likeBtn.className = 'btn btn-success';
+                cancelBtn.classList.remove('d-none');
+            } else if (userLikeStatus === false) {
+                // 비추천한 상태
+                dislikeBtn.className = 'btn btn-danger';
+                cancelBtn.classList.remove('d-none');
+            }
         }
 
-        // 댓글 좋아요 (향후 구현)
-        function likeComment(commentId) {
-            alert('좋아요 기능은 향후 구현 예정입니다.');
-        }
+        // 메시지 표시
+        function showMessage(message, type) {
+            // 기존 알림 제거
+            const existingAlert = document.querySelector('.alert-message');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
 
-        // 댓글 수정 (향후 구현)
-        function editComment(commentId) {
-            alert('수정 기능은 향후 구현 예정입니다.');
+            // 새 알림 생성
+            const alertClass = type === 'success' ? 'alert-success' :
+                              type === 'warning' ? 'alert-warning' :
+                              type === 'info' ? 'alert-info' : 'alert-danger';
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${alertClass} alert-dismissible fade show alert-message`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            // 추천 버튼 섹션 위에 알림 표시
+            const cardFooter = document.querySelector('.card-footer');
+            cardFooter.parentNode.insertBefore(alertDiv, cardFooter);
+
+            // 3초 후 자동 제거
+            setTimeout(() => {
+                if (alertDiv) {
+                    alertDiv.remove();
+                }
+            }, 3000);
         }
     </script>
 </body>
