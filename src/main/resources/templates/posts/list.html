@@ -18,7 +18,9 @@
                     <span class="navbar-text me-3">
                         안녕하세요, <span sec:authentication="name"></span>님!
                     </span>
-                    <a class="nav-link" th:href="@{/logout}">로그아웃</a>
+                    <form th:action="@{/logout}" method="post" style="display: inline;">
+                        <button type="submit" class="nav-link btn btn-link p-0" style="text-decoration: none;">로그아웃</button>
+                    </form>
                 </div>
 
                 <!-- 로그인하지 않은 사용자 -->

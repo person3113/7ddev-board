@@ -422,6 +422,10 @@ public class PostController {
 
         @NotNull(message = "작성자는 필수입니다.")
         private Long authorId;
+
+        // 마크다운 지원 필드
+        @Builder.Default
+        private Boolean isMarkdown = false;
     }
 
     /**
@@ -445,5 +449,9 @@ public class PostController {
 
         @NotNull(message = "사용자 ID는 필수입니다.")
         private Long userId;
+
+        // 마크다운 지원 필드
+        @Builder.Default
+        private Boolean isMarkdown = false;
     }
 }

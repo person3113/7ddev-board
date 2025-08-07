@@ -12,8 +12,10 @@
         <div class="container">
             <a class="navbar-brand" href="/admin">관리자 페이지</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/posts">게시판</a>
-                <a class="nav-link" href="/logout">로그아웃</a>
+                <a class="nav-link" href="/posts">일반 사이트로</a>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="nav-link btn btn-link p-0" style="text-decoration: none;">로그아웃</button>
+                </form>
             </div>
         </div>
     </nav>

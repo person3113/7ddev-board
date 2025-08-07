@@ -39,10 +39,17 @@
                               method="post"
                               th:object="${post}">
 
+                            <!-- 전체 에러 메시지 - form 태그 안으로 이동 -->
+                            <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+                                <ul class="mb-0">
+                                    <li th:each="error : ${#fields.globalErrors()}" th:text="${error}"></li>
+                                </ul>
+                            </div>
+
                             <!-- PUT 메서드 지원 (수정 시) -->
                             <input th:if="${post.id != null}" type="hidden" name="_method" value="put">
 
-                            <!-- 사용자 ID (임시로 1 고정, 향후 세션에서 가져올 예정) -->
+                            <!-- 사용자 ID - 새 게시글은 authorId, 수정은 userId -->
                             <input type="hidden" th:field="*{authorId}" th:if="${post.id == null}" value="1">
                             <input type="hidden" th:field="*{userId}" th:if="${post.id != null}">
 
