@@ -12,11 +12,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -101,6 +103,7 @@ class PostControllerTest {
 
     @Test
     @DisplayName("GET /posts/new - 게시글 작성 폼")
+    @WithMockUser(username = "testuser", roles = "USER")
     void getNewPostForm() throws Exception {
         mockMvc.perform(get("/posts/new"))
                 .andDo(print())
@@ -111,12 +114,14 @@ class PostControllerTest {
 
     @Test
     @DisplayName("POST /posts - 게시글 생성")
+    @WithMockUser(username = "testuser", roles = "USER")
     void createPost() throws Exception {
         mockMvc.perform(post("/posts")
                         .param("title", "새 게시글")
                         .param("content", "새 게시글 내용")
                         .param("category", "공지")
-                        .param("authorId", testUser.getId().toString()))
+                        .param("authorId", testUser.getId().toString())
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/posts/*"));
@@ -124,11 +129,13 @@ class PostControllerTest {
 
     @Test
     @DisplayName("POST /posts - 필수 필드 누락 시 실패")
+    @WithMockUser(username = "testuser", roles = "USER")
     void createPost_ValidationFail() throws Exception {
         mockMvc.perform(post("/posts")
                         .param("title", "")  // 제목 누락
                         .param("content", "내용")
-                        .param("authorId", testUser.getId().toString()))
+                        .param("authorId", testUser.getId().toString())
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(view().name("posts/form"));
@@ -136,6 +143,7 @@ class PostControllerTest {
 
     @Test
     @DisplayName("GET /posts/{id}/edit - 게시글 수정 폼")
+    @WithMockUser(username = "testuser", roles = "USER")
     void getEditPostForm() throws Exception {
         mockMvc.perform(get("/posts/{id}/edit", testPost.getId())
                         .param("userId", testUser.getId().toString()))
@@ -148,12 +156,14 @@ class PostControllerTest {
 
     @Test
     @DisplayName("PUT /posts/{id} - 게시글 수정")
+    @WithMockUser(username = "testuser", roles = "USER")
     void updatePost() throws Exception {
         mockMvc.perform(put("/posts/{id}", testPost.getId())
                         .param("title", "수정된 제목")
                         .param("content", "수정된 내용")
                         .param("category", "수정된 카테고리")
-                        .param("userId", testUser.getId().toString()))
+                        .param("userId", testUser.getId().toString())
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/posts/" + testPost.getId()));
@@ -161,6 +171,7 @@ class PostControllerTest {
 
     @Test
     @DisplayName("PUT /posts/{id} - 권한 없는 사용자의 수정 시도")
+    @WithMockUser(username = "another", roles = "USER")
     void updatePost_Unauthorized() throws Exception {
         User anotherUser = User.builder()
                 .username("another")
@@ -174,16 +185,19 @@ class PostControllerTest {
         mockMvc.perform(put("/posts/{id}", testPost.getId())
                         .param("title", "수정된 제목")
                         .param("content", "수정된 내용")
-                        .param("userId", anotherUser.getId().toString()))
+                        .param("userId", anotherUser.getId().toString())
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @DisplayName("DELETE /posts/{id} - 게시글 삭제")
+    @WithMockUser(username = "testuser", roles = "USER")
     void deletePost() throws Exception {
         mockMvc.perform(delete("/posts/{id}", testPost.getId())
-                        .param("userId", testUser.getId().toString()))
+                        .param("userId", testUser.getId().toString())
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/posts"));
@@ -191,6 +205,7 @@ class PostControllerTest {
 
     @Test
     @DisplayName("DELETE /posts/{id} - 권한 없는 사용자의 삭제 시도")
+    @WithMockUser(username = "another2", roles = "USER")
     void deletePost_Unauthorized() throws Exception {
         User anotherUser = User.builder()
                 .username("another2")
@@ -202,7 +217,8 @@ class PostControllerTest {
         anotherUser = userRepository.save(anotherUser);
 
         mockMvc.perform(delete("/posts/{id}", testPost.getId())
-                        .param("userId", anotherUser.getId().toString()))
+                        .param("userId", anotherUser.getId().toString())
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }

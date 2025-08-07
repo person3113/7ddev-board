@@ -12,28 +12,33 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureWebMvc
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Transactional
 class CommentControllerTest {
 
     @Autowired
-    private WebApplicationContext context;
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private CommentRepository commentRepository;
@@ -44,18 +49,12 @@ class CommentControllerTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    private MockMvc mockMvc;
     private User author;
     private User otherUser;
     private Post post;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-
         // 테스트 사용자 생성
         author = User.builder()
                 .username("testuser")
@@ -87,6 +86,7 @@ class CommentControllerTest {
 
     @Test
     @DisplayName("댓글 생성 - POST /posts/{postId}/comments")
+    @WithMockUser(username = "testuser", roles = "USER")
     void createComment_Success() throws Exception {
         // given
         Map<String, Object> requestBody = new HashMap<>();
@@ -96,7 +96,8 @@ class CommentControllerTest {
         // when & then
         mockMvc.perform(post("/posts/{postId}/comments", post.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
+                        .content(objectMapper.writeValueAsString(requestBody))
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.content").value("테스트 댓글 내용"))
@@ -106,6 +107,7 @@ class CommentControllerTest {
 
     @Test
     @DisplayName("대댓글 생성 - POST /comments/{commentId}/replies")
+    @WithMockUser(username = "testuser", roles = "USER")
     void createReply_Success() throws Exception {
         // given
         Comment parentComment = Comment.builder()
@@ -122,7 +124,8 @@ class CommentControllerTest {
         // when & then
         mockMvc.perform(post("/comments/{commentId}/replies", parentComment.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
+                        .content(objectMapper.writeValueAsString(requestBody))
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.content").value("대댓글 내용"))
@@ -181,6 +184,7 @@ class CommentControllerTest {
 
     @Test
     @DisplayName("댓글 수정 - PUT /comments/{id}")
+    @WithMockUser(username = "testuser", roles = "USER")
     void updateComment_Success() throws Exception {
         // given
         Comment comment = Comment.builder()
@@ -197,7 +201,8 @@ class CommentControllerTest {
         // when & then
         mockMvc.perform(put("/comments/{id}", comment.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
+                        .content(objectMapper.writeValueAsString(requestBody))
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").value("수정된 댓글"));
@@ -205,6 +210,7 @@ class CommentControllerTest {
 
     @Test
     @DisplayName("댓글 수정 - 권한 없음 403")
+    @WithMockUser(username = "otheruser", roles = "USER")
     void updateComment_Forbidden() throws Exception {
         // given
         Comment comment = Comment.builder()
@@ -221,13 +227,15 @@ class CommentControllerTest {
         // when & then
         mockMvc.perform(put("/comments/{id}", comment.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
+                        .content(objectMapper.writeValueAsString(requestBody))
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @DisplayName("댓글 삭제 - DELETE /comments/{id}")
+    @WithMockUser(username = "testuser", roles = "USER")
     void deleteComment_Success() throws Exception {
         // given
         Comment comment = Comment.builder()
@@ -243,13 +251,15 @@ class CommentControllerTest {
         // when & then
         mockMvc.perform(delete("/comments/{id}", comment.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
+                        .content(objectMapper.writeValueAsString(requestBody))
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
     }
 
     @Test
     @DisplayName("댓글 삭제 - 권한 없음 403")
+    @WithMockUser(username = "otheruser", roles = "USER")
     void deleteComment_Forbidden() throws Exception {
         // given
         Comment comment = Comment.builder()
@@ -265,7 +275,8 @@ class CommentControllerTest {
         // when & then
         mockMvc.perform(delete("/comments/{id}", comment.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
+                        .content(objectMapper.writeValueAsString(requestBody))
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
@@ -284,6 +295,7 @@ class CommentControllerTest {
 
     @Test
     @DisplayName("빈 내용으로 댓글 생성 - 400")
+    @WithMockUser(username = "testuser", roles = "USER")
     void createComment_EmptyContent_BadRequest() throws Exception {
         // given
         Map<String, Object> requestBody = new HashMap<>();
@@ -293,7 +305,8 @@ class CommentControllerTest {
         // when & then
         mockMvc.perform(post("/posts/{postId}/comments", post.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
+                        .content(objectMapper.writeValueAsString(requestBody))
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }

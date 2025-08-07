@@ -176,20 +176,20 @@
 ### 🔐 사용자 인증 구현
 
 #### User 도메인 서비스
-- [ ] **Red**: 회원가입 테스트 작성
-  - [ ] 유효한 데이터로 가입 성공
-  - [ ] 중복 username/email 검증
-  - [ ] 비밀번호 암호화 확인
-- [ ] **Green**: UserService 구현
-- [ ] **Refactor**: 인증 로직 개선
+- [x] **Red**: 회원가입 테스트 작성
+  - [x] 유효한 데이터로 가입 성공
+  - [x] 중복 username/email 검증
+  - [x] 비밀번호 암호화 확인
+- [x] **Green**: UserService 구현
+- [x] **Refactor**: 인증 로직 개선
 
 #### 로그인 기능 (Spring Security + 세션)
-- [ ] **Red**: 로그인 테스트 작성
-- [ ] **Green**: Spring Security 설정
-- [ ] **Green**: 로그인/회원가입 페이지 (Thymeleaf)
-  - [ ] auth/login.html
-  - [ ] auth/register.html
-- [ ] **Refactor**: 세션 관리 개선
+- [x] **Red**: 로그인 테스트 작성
+- [x] **Green**: Spring Security 설정
+- [x] **Green**: 로그인/회원가입 페이지 (Thymeleaf)
+  - [x] auth/login.html
+  - [x] auth/register.html
+- [x] **Refactor**: 세션 관리 개선
 
 ### 👍 추천/비추천 시스템
 - [ ] **Red**: 추천 시스템 테스트 작성
