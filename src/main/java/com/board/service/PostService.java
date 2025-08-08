@@ -251,20 +251,4 @@ public class PostService {
             return markdownService.escapeHtml(post.getContent());
         }
     }
-
-    /**
-     * 게시글 내용의 미리보기 텍스트 생성 (HTML 태그 제거)
-     */
-    @Transactional(readOnly = true)
-    public String getContentPreview(Post post, int maxLength) {
-        if (post.getIsMarkdown()) {
-            return markdownService.getPlainTextPreview(post.getContent(), maxLength);
-        } else {
-            String content = post.getContent();
-            if (content.length() > maxLength) {
-                return content.substring(0, maxLength) + "...";
-            }
-            return content;
-        }
-    }
 }

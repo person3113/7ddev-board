@@ -121,13 +121,8 @@
                             <!-- 버튼 그룹 -->
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <a href="/posts" class="btn btn-secondary">
-                                        <i class="bi bi-arrow-left"></i> 취소
-                                    </a>
-                                    <a th:if="${post.id != null}"
-                                       th:href="@{/posts/{id}(id=${post.id})}"
-                                       class="btn btn-outline-secondary">
-                                        <i class="bi bi-eye"></i> 미리보기
+                                    <a href="/posts" class="btn btn-outline-secondary">
+                                        <i class="bi bi-list"></i> 목록으로
                                     </a>
                                 </div>
                                 <div>

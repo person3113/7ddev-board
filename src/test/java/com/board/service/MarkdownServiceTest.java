@@ -67,24 +67,6 @@ class MarkdownServiceTest {
     }
 
     @Test
-    @DisplayName("마크다운의 플레인 텍스트 미리보기를 생성할 수 있다")
-    void getPlainTextPreview() {
-        // given
-        String markdown = "# 제목\n\n**굵은 글씨**와 *기울임*\n\n- 리스트 항목 1\n- 리스트 항목 2";
-        int maxLength = 20;
-
-        // when
-        String preview = markdownService.getPlainTextPreview(markdown, maxLength);
-
-        // then
-        assertThat(preview).doesNotContain("<h1>");
-        assertThat(preview).doesNotContain("**");
-        assertThat(preview).doesNotContain("*");
-        assertThat(preview).hasSizeLessThanOrEqualTo(maxLength + 3); // "..." 포함
-        assertThat(preview).contains("제목");
-    }
-
-    @Test
     @DisplayName("마크다운에서 첫 번째 이미지 URL을 추출할 수 있다")
     void extractFirstImageUrl() {
         // given
@@ -108,5 +90,72 @@ class MarkdownServiceTest {
 
         // then
         assertThat(imageUrl).isNull();
+    }
+
+    @Test
+    @DisplayName("일반 텍스트의 줄바꿈을 HTML로 변환할 수 있다")
+    void convertPlainTextToHtml_withLineBreaks() {
+        // given
+        String plainText = "# test\n\n1. dsdf\n2. sdfsdsf\n\ndsdd";
+
+        // when
+        String html = markdownService.convertPlainTextToHtml(plainText);
+
+        // then
+        assertThat(html).isEqualTo("# test<br><br>1. dsdf<br>2. sdfsdsf<br><br>dsdd");
+        assertThat(html).contains("<br>");
+        assertThat(html).doesNotContain("\n"); // 줄바꿈 문자가 모두 <br>로 변환되어야 함
+    }
+
+    @Test
+    @DisplayName("일반 텍스트의 HTML 특수문자를 이스케이프한다")
+    void convertPlainTextToHtml_withSpecialCharacters() {
+        // given
+        String plainText = "제목 <script>alert('xss')</script>\n내용 & 기타 \"따옴표\"";
+
+        // when
+        String html = markdownService.convertPlainTextToHtml(plainText);
+
+        // then
+        assertThat(html).contains("&lt;script&gt;");
+        assertThat(html).contains("&amp;");
+        assertThat(html).contains("&quot;");
+        assertThat(html).contains("<br>");
+        assertThat(html).doesNotContain("<script>"); // XSS 방지
+    }
+
+    @Test
+    @DisplayName("빈 일반 텍스트는 빈 문자열을 반환한다")
+    void convertPlainTextToHtml_empty() {
+        // when
+        String html = markdownService.convertPlainTextToHtml("");
+
+        // then
+        assertThat(html).isEmpty();
+    }
+
+    @Test
+    @DisplayName("null 일반 텍스트는 빈 문자열을 반환한다")
+    void convertPlainTextToHtml_null() {
+        // when
+        String html = markdownService.convertPlainTextToHtml(null);
+
+        // then
+        assertThat(html).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Windows 스타일 줄바꿈(\\r\\n)도 처리할 수 있다")
+    void convertPlainTextToHtml_windowsLineBreaks() {
+        // given
+        String plainText = "첫 번째 줄\r\n두 번째 줄\r\n세 번째 줄";
+
+        // when
+        String html = markdownService.convertPlainTextToHtml(plainText);
+
+        // then
+        assertThat(html).isEqualTo("첫 번째 줄<br>두 번째 줄<br>세 번째 줄");
+        assertThat(html).doesNotContain("\r\n");
+        assertThat(html).doesNotContain("\n");
     }
 }

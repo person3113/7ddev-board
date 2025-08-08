@@ -76,7 +76,7 @@
 
                     <!-- 게시글 내용 -->
                     <div class="card-body">
-                        <div th:utext="${#strings.replace(#strings.escapeXml(post.content), '\n', '&lt;br/&gt;')}"
+                        <div th:utext="${htmlContent}"
                              class="post-content" style="min-height: 200px; line-height: 1.6;"></div>
                     </div>
 

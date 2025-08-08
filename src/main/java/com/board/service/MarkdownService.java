@@ -49,28 +49,21 @@ public class MarkdownService {
     }
 
     /**
-     * 마크다운 텍스트의 미리보기 생성 (HTML 태그 제거)
+     * 일반 텍스트를 HTML로 변환 (줄바꿈 포함)
+     * 마크다운을 사용하지 않는 경우에 사용
      */
-    public String getPlainTextPreview(String markdown, int maxLength) {
-        if (markdown == null || markdown.trim().isEmpty()) {
+    public String convertPlainTextToHtml(String text) {
+        if (text == null || text.trim().isEmpty()) {
             return "";
         }
 
-        // 마크다운을 HTML로 변환
-        String html = markdownToHtml(markdown);
-        
-        // HTML 태그 제거
-        String plainText = html.replaceAll("<[^>]*>", "");
-        
-        // 연속된 공백 정리
-        plainText = plainText.replaceAll("\\s+", " ").trim();
-        
-        // 길이 제한
-        if (plainText.length() > maxLength) {
-            return plainText.substring(0, maxLength) + "...";
-        }
-        
-        return plainText;
+        // HTML 특수문자 이스케이프
+        String escapedText = Encode.forHtml(text);
+
+        // 줄바꿈을 <br> 태그로 변환
+        String htmlContent = escapedText.replaceAll("\\r?\\n", "<br>");
+
+        return htmlContent;
     }
 
     /**

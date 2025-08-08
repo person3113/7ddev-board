@@ -6,6 +6,7 @@ import com.board.domain.repository.UserRepository;
 import com.board.service.PostService;
 import com.board.service.LikeService;
 import com.board.service.ViewService;
+import com.board.service.MarkdownService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -45,6 +46,7 @@ public class PostController {
     private final UserRepository userRepository;
     private final LikeService likeService;
     private final ViewService viewService;
+    private final MarkdownService markdownService;
 
     /**
      * 게시글 목록 조회
@@ -86,10 +88,23 @@ public class PostController {
             // 조회수가 증가된 후 다시 조회
             post = postService.findById(id);
 
-            model.addAttribute("post", post);
+            // 마크다운 설정에 따라 조건부로 HTML 변환
+            String htmlContent;
+            if (Boolean.TRUE.equals(post.getIsMarkdown())) {
+                // 마크다운으로 작성된 경우: 마크다운을 HTML로 변환
+                htmlContent = markdownService.markdownToHtml(post.getContent());
+                log.debug("마크다운 렌더링 적용 - 게시글 ID: {}", post.getId());
+            } else {
+                // 일반 텍스트로 작성된 경우: HTML 이스케이프 + 줄바꿈 처리
+                htmlContent = markdownService.convertPlainTextToHtml(post.getContent());
+                log.debug("일반 텍스트 렌더링 적용 (줄바꿈 포함) - 게시글 ID: {}", post.getId());
+            }
 
-            log.debug("게시글 상세 조회 완료 - ID: {}, 제목: {}, 조회수: {}",
-                     post.getId(), post.getTitle(), post.getViewCount());
+            model.addAttribute("post", post);
+            model.addAttribute("htmlContent", htmlContent);
+
+            log.debug("게시글 상세 조회 완료 - ID: {}, 제목: {}, 조회수: {}, 마크다운: {}",
+                     post.getId(), post.getTitle(), post.getViewCount(), post.getIsMarkdown());
             return "posts/detail";
         } catch (IllegalArgumentException e) {
             log.warn("게시글 조회 실패 - ID: {}, 오류: {}", id, e.getMessage());
@@ -126,7 +141,8 @@ public class PostController {
     public String createPost(@Valid @ModelAttribute("post") PostCreateRequest request,
                             BindingResult bindingResult,
                             Model model) {
-        log.debug("게시글 생성 요청 - 제목: {}, 작성자 ID: {}", request.getTitle(), request.getAuthorId());
+        log.debug("게시글 생성 요청 - 제목: {}, 작성자 ID: {}, 마크다운: {}",
+                 request.getTitle(), request.getAuthorId(), request.getIsMarkdown());
 
         if (bindingResult.hasErrors()) {
             log.warn("게시글 생성 검증 실패 - 오류: {}", bindingResult.getAllErrors());
@@ -137,14 +153,16 @@ public class PostController {
             User author = userRepository.findById(request.getAuthorId())
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+            // 마크다운 지원 메서드 사용
             Post post = postService.createPost(
                     request.getTitle(),
                     request.getContent(),
                     request.getCategory(),
-                    author
+                    author,
+                    request.getIsMarkdown()
             );
 
-            log.info("게시글 생성 완료 - ID: {}", post.getId());
+            log.info("게시글 생성 완료 - ID: {}, 마크다운: {}", post.getId(), post.getIsMarkdown());
             return "redirect:/posts/" + post.getId();
 
         } catch (IllegalArgumentException e) {
@@ -180,6 +198,7 @@ public class PostController {
                     .content(post.getContent())
                     .category(post.getCategory())
                     .userId(userId)
+                    .isMarkdown(post.getIsMarkdown()) // 기존 마크다운 설정 값 로드
                     .build();
 
             model.addAttribute("post", request);
@@ -201,7 +220,8 @@ public class PostController {
                             @Valid @ModelAttribute("post") PostUpdateRequest request,
                             BindingResult bindingResult,
                             Model model) {
-        log.debug("게시글 수정 요청 - ID: {}, 사용자 ID: {}", id, request.getUserId());
+        log.debug("게시글 수정 요청 - ID: {}, 사용자 ID: {}, 마크다운: {}",
+                 id, request.getUserId(), request.getIsMarkdown());
 
         if (bindingResult.hasErrors()) {
             log.warn("게시글 수정 검증 실패 - 오류: {}", bindingResult.getAllErrors());
@@ -212,9 +232,11 @@ public class PostController {
             User user = userRepository.findById(request.getUserId())
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-            postService.updatePost(id, request.getTitle(), request.getContent(), request.getCategory(), user);
+            // 마크다운 지원 메서드 사용
+            postService.updatePost(id, request.getTitle(), request.getContent(),
+                                 request.getCategory(), request.getIsMarkdown(), user);
 
-            log.info("게시글 수정 완료 - ID: {}", id);
+            log.info("게시글 수정 완료 - ID: {}, 마크다운: {}", id, request.getIsMarkdown());
             return "redirect:/posts/" + id;
 
         } catch (IllegalArgumentException e) {
