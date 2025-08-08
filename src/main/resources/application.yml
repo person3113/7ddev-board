@@ -3,6 +3,12 @@ spring:
   profiles:
     active: dev
 
+  # MVC 설정 - HTML 폼에서 DELETE, PUT 등의 HTTP 메서드 지원
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+
   # 데이터 JPA 감사 기능 활성화
   jpa:
     hibernate:

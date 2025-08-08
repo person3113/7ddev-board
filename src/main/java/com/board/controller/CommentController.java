@@ -22,11 +22,35 @@ public class CommentController {
     private final UserRepository userRepository;
 
     /**
-     * 댓글 생성 (AJAX)
+     * 댓글 생성 (폼 제출)
      */
     @PostMapping("/posts/{postId}/comments")
+    public String createComment(
+            @PathVariable Long postId,
+            @RequestParam String content,
+            @RequestParam Long authorId) {
+
+        try {
+            if (content == null || content.trim().isEmpty()) {
+                return "redirect:/posts/" + postId + "?error=empty_content";
+            }
+
+            User author = userRepository.findById(authorId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+
+            commentService.createComment(postId, content, author);
+            return "redirect:/posts/" + postId; // 성공 시 게시글 상세 페이지로 리다이렉트
+        } catch (IllegalArgumentException e) {
+            return "redirect:/posts/" + postId + "?error=invalid_request";
+        }
+    }
+
+    /**
+     * 댓글 생성 (AJAX) - API용
+     */
+    @PostMapping("/api/posts/{postId}/comments")
     @ResponseBody
-    public ResponseEntity<Comment> createComment(
+    public ResponseEntity<Comment> createCommentApi(
             @PathVariable Long postId,
             @RequestBody Map<String, Object> request) {
 
@@ -105,7 +129,7 @@ public class CommentController {
      */
     @PutMapping("/comments/{id}")
     @ResponseBody
-    public ResponseEntity<Comment> updateComment(
+    public ResponseEntity<Map<String, Object>> updateComment(
             @PathVariable Long id,
             @RequestBody Map<String, Object> request) {
 
@@ -117,12 +141,26 @@ public class CommentController {
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
 
             Comment updatedComment = commentService.updateComment(id, content, author);
-            return ResponseEntity.ok(updatedComment);
+
+            // 무한 순환 참조를 피하기 위해 간단한 응답 객체 반환
+            Map<String, Object> response = Map.of(
+                "success", true,
+                "message", "댓글이 수정되었습니다.",
+                "commentId", updatedComment.getId(),
+                "content", updatedComment.getContent()
+            );
+
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = Map.of(
+                "success", false,
+                "message", e.getMessage()
+            );
+
             if (e.getMessage().contains("권한이 없습니다")) {
-                return ResponseEntity.status(403).build();
+                return ResponseEntity.status(403).body(errorResponse);
             }
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 
@@ -131,7 +169,7 @@ public class CommentController {
      */
     @DeleteMapping("/comments/{id}")
     @ResponseBody
-    public ResponseEntity<Void> deleteComment(
+    public ResponseEntity<Map<String, Object>> deleteComment(
             @PathVariable Long id,
             @RequestBody Map<String, Object> request) {
 
@@ -142,12 +180,23 @@ public class CommentController {
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
 
             commentService.deleteComment(id, author);
-            return ResponseEntity.noContent().build();
+
+            Map<String, Object> response = Map.of(
+                "success", true,
+                "message", "댓글이 삭제되었습니다."
+            );
+
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = Map.of(
+                "success", false,
+                "message", e.getMessage()
+            );
+
             if (e.getMessage().contains("권한이 없습니다")) {
-                return ResponseEntity.status(403).build();
+                return ResponseEntity.status(403).body(errorResponse);
             }
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 }

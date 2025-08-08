@@ -85,16 +85,44 @@ class CommentControllerTest {
     }
 
     @Test
-    @DisplayName("댓글 생성 - POST /posts/{postId}/comments")
+    @DisplayName("댓글 생성 - POST /posts/{postId}/comments (폼 제출)")
     @WithMockUser(username = "testuser", roles = "USER")
     void createComment_Success() throws Exception {
+        // when & then
+        mockMvc.perform(post("/posts/{postId}/comments", post.getId())
+                        .param("content", "테스트 댓글 내용")
+                        .param("authorId", author.getId().toString())
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/posts/" + post.getId()));
+    }
+
+    @Test
+    @DisplayName("빈 내용으로 댓글 생성 - 400")
+    @WithMockUser(username = "testuser", roles = "USER")
+    void createComment_EmptyContent() throws Exception {
+        // when & then
+        mockMvc.perform(post("/posts/{postId}/comments", post.getId())
+                        .param("content", "")
+                        .param("authorId", author.getId().toString())
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/posts/" + post.getId() + "?error=empty_content"));
+    }
+
+    @Test
+    @DisplayName("댓글 생성 API - POST /api/posts/{postId}/comments (AJAX)")
+    @WithMockUser(username = "testuser", roles = "USER")
+    void createCommentApi_Success() throws Exception {
         // given
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("content", "테스트 댓글 내용");
         requestBody.put("authorId", author.getId());
 
         // when & then
-        mockMvc.perform(post("/posts/{postId}/comments", post.getId())
+        mockMvc.perform(post("/api/posts/{postId}/comments", post.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestBody))
                         .with(csrf()))
@@ -291,23 +319,5 @@ class CommentControllerTest {
         mockMvc.perform(get("/comments/{id}", nonExistentId))
                 .andDo(print())
                 .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @DisplayName("빈 내용으로 댓글 생성 - 400")
-    @WithMockUser(username = "testuser", roles = "USER")
-    void createComment_EmptyContent_BadRequest() throws Exception {
-        // given
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("content", ""); // 빈 내용
-        requestBody.put("authorId", author.getId());
-
-        // when & then
-        mockMvc.perform(post("/posts/{postId}/comments", post.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody))
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
     }
 }

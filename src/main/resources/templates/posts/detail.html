@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title th:text="${post.title} + ' - 7일 게시판'">게시글 상세 - 7일 게시판</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
@@ -74,7 +76,7 @@
 
                     <!-- 게시글 내용 -->
                     <div class="card-body">
-                        <div th:utext="${#strings.replace(#strings.escapeXml(post.content), T(System).lineSeparator(), '&lt;br/&gt;')}"
+                        <div th:utext="${#strings.replace(#strings.escapeXml(post.content), '\n', '&lt;br/&gt;')}"
                              class="post-content" style="min-height: 200px; line-height: 1.6;"></div>
                     </div>
 
@@ -121,12 +123,19 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <h6 class="card-subtitle mb-2 text-muted" th:text="${comment.author.nickname}">댓글 작성자</h6>
-                                        <p class="card-text" th:text="${comment.content}">댓글 내용</p>
+                                        <p class="card-text" th:text="${comment.content}" th:id="'comment-content-' + ${comment.id}">댓글 내용</p>
                                         <small class="text-muted" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</small>
                                     </div>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-outline-primary">수정</button>
-                                        <button type="button" class="btn btn-outline-danger">삭제</button>
+                                        <button type="button"
+                                                class="btn btn-outline-primary"
+                                                th:data-comment-id="${comment.id}"
+                                                th:data-comment-content="${comment.content}"
+                                                onclick="editComment(this)">수정</button>
+                                        <button type="button"
+                                                class="btn btn-outline-danger"
+                                                th:data-comment-id="${comment.id}"
+                                                onclick="deleteComment(this)">삭제</button>
                                     </div>
                                 </div>
                             </div>
@@ -146,6 +155,7 @@
                                               required></textarea>
                                 </div>
                                 <input type="hidden" name="authorId" value="1">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <button type="submit" class="btn btn-primary">댓글 작성</button>
                             </form>
                         </div>
@@ -197,6 +207,10 @@
     <script th:inline="javascript">
         // 게시글 ID를 JavaScript 변수로 전달
         const postId = /*[[${post.id}]]*/ 1;
+
+        // CSRF 토큰을 JavaScript 변수로 전달
+        const csrfToken = /*[[${_csrf.token}]]*/ 'CSRF_TOKEN';
+        const csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
 
         // 페이지 로드 시 사용자의 추천 상태 확인
         document.addEventListener('DOMContentLoaded', function() {
@@ -392,6 +406,181 @@
                 form.reportValidity();
             }
         });
+
+        // 댓글 수정 버튼 클릭 시 처리
+        function editComment(button) {
+            console.log('editComment 호출됨'); // 디버깅용 로그
+
+            const commentId = button.getAttribute('data-comment-id');
+            const commentContent = button.getAttribute('data-comment-content');
+
+            console.log('Comment ID:', commentId, 'Content:', commentContent); // 디버깅용 로그
+
+            // 현재 댓글 카드 찾기
+            const commentCard = button.closest('.card');
+            const cardBody = commentCard.querySelector('.card-body');
+
+            // 이미 수정 모드인지 확인
+            if (cardBody.querySelector('.edit-form')) {
+                return; // 이미 수정 모드면 무시
+            }
+
+            // 기존 댓글 내용 영역 찾기
+            const commentTextElement = cardBody.querySelector('.card-text');
+            const originalContent = commentTextElement.textContent;
+
+            // 수정 폼 생성
+            const editForm = document.createElement('div');
+            editForm.className = 'edit-form mb-3';
+            editForm.innerHTML = `
+                <textarea class="form-control mb-2" rows="3">${originalContent}</textarea>
+                <div>
+                    <button type="button" class="btn btn-primary btn-sm me-2" onclick="saveComment(${commentId}, this)">저장</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEdit(${commentId})">취소</button>
+                </div>
+            `;
+
+            // 기존 댓글 텍스트 숨기기
+            commentTextElement.style.display = 'none';
+
+            // 수정 폼을 댓글 텍스트 다음에 삽입
+            commentTextElement.parentNode.insertBefore(editForm, commentTextElement.nextSibling);
+
+            // 수정/삭제 버튼 숨기기
+            const buttonGroup = button.closest('.btn-group');
+            buttonGroup.style.display = 'none';
+        }
+
+        // 댓글 저장 처리
+        function saveComment(commentId, button) {
+            console.log('saveComment 호출됨, ID:', commentId); // 디버깅용 로그
+
+            const editForm = button.closest('.edit-form');
+            const textarea = editForm.querySelector('textarea');
+            const newContent = textarea.value.trim();
+
+            if (!newContent) {
+                alert('댓글 내용을 입력해주세요.');
+                return;
+            }
+
+            console.log('새 댓글 내용:', newContent); // 디버깅용 로그
+
+            // 서버에 댓글 수정 요청
+            fetch(`/comments/${commentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken // CSRF 토큰 추가
+                },
+                body: JSON.stringify({
+                    content: newContent,
+                    authorId: 1  // 현재 사용자 ID (하드코딩)
+                })
+            })
+            .then(response => {
+                console.log('응답 상태:', response.status); // 디버깅용 로그
+                return response.json(); // 응답을 JSON으로 파싱
+            })
+            .then(data => {
+                console.log('수정 응답:', data); // 디버깅용 로그
+
+                if (data.success) {
+                    // 수정 모드 종료 및 새 내용으로 업데이트
+                    const commentCard = button.closest('.card');
+                    const cardBody = commentCard.querySelector('.card-body');
+                    const commentTextElement = cardBody.querySelector('.card-text');
+
+                    // 댓글 내용 업데이트
+                    commentTextElement.textContent = data.content;
+                    commentTextElement.style.display = 'block';
+
+                    // 수정 폼 제거
+                    editForm.remove();
+
+                    // 수정/삭제 버튼 다시 표시
+                    const buttonGroup = cardBody.querySelector('.btn-group');
+                    buttonGroup.style.display = 'flex';
+
+                    showMessage('댓글이 수정되었습니다.', 'success');
+                } else {
+                    throw new Error(data.message || '댓글 수정에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('댓글 수정 실패:', error);
+                showMessage(error.message || '댓글 수정 중 오류가 발생했습니다.', 'error');
+            });
+        }
+
+        // 댓글 삭제 버튼 클릭 시 처리
+        function deleteComment(button) {
+            console.log('deleteComment 호출됨'); // 디버깅용 로그
+
+            const commentId = button.getAttribute('data-comment-id');
+            console.log('삭제할 Comment ID:', commentId); // 디버깅용 로그
+
+            // 삭제 확인 대화상자
+            if (confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+                // 서버에 댓글 삭제 요청
+                fetch(`/comments/${commentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken // CSRF 토큰 추가
+                    },
+                    body: JSON.stringify({
+                        authorId: 1  // 현재 사용자 ID (하드코딩)
+                    })
+                })
+                .then(response => {
+                    console.log('삭제 응답 상태:', response.status); // 디버깅용 로그
+                    return response.json(); // 응답을 JSON으로 파싱
+                })
+                .then(data => {
+                    console.log('삭제 응답:', data); // 디버깅용 로그
+
+                    if (data.success) {
+                        // UI에서 댓글 카드 제거
+                        const commentCard = button.closest('.card');
+                        if (commentCard) {
+                            commentCard.remove();
+                        }
+
+                        showMessage('댓글이 삭제되었습니다.', 'success');
+                    } else {
+                        throw new Error(data.message || '댓글 삭제에 실패했습니다.');
+                    }
+                })
+                .catch(error => {
+                    console.error('댓글 삭제 실패:', error);
+                    showMessage(error.message || '댓글 삭제 중 오류가 발생했습니다.', 'error');
+                });
+            }
+        }
+
+        // 수정 취소
+        function cancelEdit(commentId) {
+            console.log('cancelEdit 호출됨, ID:', commentId); // 디버깅용 로그
+
+            // 댓글 카드 찾기
+            const commentCard = document.querySelector(`[data-comment-id="${commentId}"]`).closest('.card');
+            const cardBody = commentCard.querySelector('.card-body');
+
+            // 수정 폼 제거
+            const editForm = cardBody.querySelector('.edit-form');
+            if (editForm) {
+                editForm.remove();
+            }
+
+            // 원래 댓글 텍스트 다시 표시
+            const commentTextElement = cardBody.querySelector('.card-text');
+            commentTextElement.style.display = 'block';
+
+            // 수정/삭제 버튼 다시 표시
+            const buttonGroup = cardBody.querySelector('.btn-group');
+            buttonGroup.style.display = 'flex';
+        }
     </script>
 </body>
 </html>
