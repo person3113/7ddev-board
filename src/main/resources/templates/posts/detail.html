@@ -34,11 +34,13 @@
                             </div>
                             <div class="col-auto">
                                 <div class="d-flex gap-2">
-                                    <!-- 수정 버튼 (작성자만) -->
-                                    <a th:href="@{/posts/{id}/edit(id=${post.id}, userId=${currentUserId})}"
+                                    <!-- 수정 버튼 (작성자 또는 관리자만) -->
+                                    <a th:if="${currentUserId == post.author.id or isAdmin}"
+                                       th:href="@{/posts/{id}/edit(id=${post.id}, userId=${currentUserId})}"
                                        class="btn btn-outline-primary btn-sm">수정</a>
-                                    <!-- 삭제 버튼 (작성자만) -->
-                                    <form th:action="@{/posts/{id}(id=${post.id})}"
+                                    <!-- 삭제 버튼 (작성자 또는 관리자만) -->
+                                    <form th:if="${currentUserId == post.author.id or isAdmin}"
+                                          th:action="@{/posts/{id}(id=${post.id})}"
                                           method="post" style="display: inline;">
                                         <input type="hidden" name="_method" value="delete">
                                         <input type="hidden" name="userId" th:value="${currentUserId}">
@@ -153,13 +155,15 @@
                                                     ⚠️ 신고
                                                 </button>
 
-                                                <!-- 수정/삭제 버튼 (작성자만) -->
-                                                <button type="button"
+                                                <!-- 수정/삭제 버튼 (작성자 또는 관리자만) -->
+                                                <button th:if="${currentUserId == comment.author.id or isAdmin}"
+                                                        type="button"
                                                         class="btn btn-outline-primary btn-sm"
                                                         th:data-comment-id="${comment.id}"
                                                         th:data-comment-content="${comment.content}"
                                                         onclick="editComment(this)">수정</button>
-                                                <button type="button"
+                                                <button th:if="${currentUserId == comment.author.id or isAdmin}"
+                                                        type="button"
                                                         class="btn btn-outline-danger btn-sm"
                                                         th:data-comment-id="${comment.id}"
                                                         onclick="deleteComment(this)">삭제</button>
@@ -221,13 +225,15 @@
                                                                         ⚠️ 신고
                                                                     </button>
 
-                                                                    <!-- 수정/삭제 버튼 (작성자만) -->
-                                                                    <button type="button"
+                                                                    <!-- 수정/삭제 버튼 (작성자 또는 관리자만) -->
+                                                                    <button th:if="${currentUserId == reply.author.id or isAdmin}"
+                                                                            type="button"
                                                                             class="btn btn-outline-primary btn-sm"
                                                                             th:data-comment-id="${reply.id}"
                                                                             th:data-comment-content="${reply.content}"
                                                                             onclick="editComment(this)">수정</button>
-                                                                    <button type="button"
+                                                                    <button th:if="${currentUserId == reply.author.id or isAdmin}"
+                                                                            type="button"
                                                                             class="btn btn-outline-danger btn-sm"
                                                                             th:data-comment-id="${reply.id}"
                                                                             onclick="deleteComment(this)">삭제</button>

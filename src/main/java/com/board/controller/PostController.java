@@ -106,10 +106,14 @@ public class PostController {
             User currentUser = SessionUtil.getCurrentUser(session);
             Long currentUserId = SessionUtil.getCurrentUserIdSafe(session);
 
+            // 현재 사용자가 관리자인지 확인
+            boolean isAdmin = currentUser != null && currentUser.getRole() == com.board.domain.enums.Role.ADMIN;
+
             model.addAttribute("post", post);
             model.addAttribute("htmlContent", htmlContent);
             model.addAttribute("currentUser", currentUser);
             model.addAttribute("currentUserId", currentUserId);
+            model.addAttribute("isAdmin", isAdmin); // 관리자 여부 추가
 
             log.debug("게시글 상세 조회 완료 - ID: {}, 제목: {}, 조회수: {}, 마크다운: {}",
                      post.getId(), post.getTitle(), post.getViewCount(), post.getIsMarkdown());
@@ -125,15 +129,21 @@ public class PostController {
      * GET /posts/new
      */
     @GetMapping("/new")
-    public String getNewPostForm(Model model) {
+    public String getNewPostForm(Model model, HttpSession session) {
         log.debug("게시글 작성 폼 요청");
 
-        // PostCreateRequest 객체 생성 시 기본값 설정
+        // 현재 로그인한 사용자 ID 가져오기
+        Long currentUserId = SessionUtil.getCurrentUserId(session);
+        if (currentUserId == null) {
+            return "redirect:/auth/login";
+        }
+
+        // PostCreateRequest 객체 생성 시 현재 사용자 ID 설정
         PostCreateRequest request = PostCreateRequest.builder()
                 .title("")
                 .content("")
                 .category("")
-                .authorId(1L) // 임시로 1번 사용자 고정
+                .authorId(currentUserId) // 현재 로그인한 사용자 ID 사용
                 .build();
 
         model.addAttribute("post", request);

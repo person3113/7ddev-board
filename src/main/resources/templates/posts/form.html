@@ -50,7 +50,7 @@
                             <input th:if="${post.id != null}" type="hidden" name="_method" value="put">
 
                             <!-- 사용자 ID -->
-                            <input type="hidden" th:field="*{authorId}" th:if="${post.id == null}" value="1">
+                            <input type="hidden" th:field="*{authorId}" th:if="${post.id == null}">
                             <input type="hidden" th:field="*{userId}" th:if="${post.id != null}">
 
                             <!-- 제목 -->
