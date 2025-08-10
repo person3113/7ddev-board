@@ -1,14 +1,27 @@
 package com.board.util;
 
 import com.board.domain.entity.User;
+import com.board.domain.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 /**
  * 세션 관련 유틸리티 클래스
  */
+@Component
 public class SessionUtil {
 
     private static final String CURRENT_USER_KEY = "currentUser";
+
+    private static UserRepository userRepository;
+
+    @Autowired
+    public void setUserRepository(UserRepository userRepository) {
+        SessionUtil.userRepository = userRepository;
+    }
 
     /**
      * 세션에서 현재 로그인한 사용자 정보를 가져옵니다.
@@ -38,12 +51,46 @@ public class SessionUtil {
 
     /**
      * 세션에서 현재 로그인한 사용자 정보를 가져옵니다.
+     * 세션에 없으면 Spring Security에서 가져옵니다.
      */
     public static User getCurrentUser(HttpSession session) {
         if (session == null) {
-            return null;
+            return getUserFromSecurity();
         }
-        return (User) session.getAttribute(CURRENT_USER_KEY);
+
+        // 먼저 세션에서 확인
+        User sessionUser = (User) session.getAttribute(CURRENT_USER_KEY);
+        if (sessionUser != null) {
+            return sessionUser;
+        }
+
+        // 세션에 없으면 Spring Security에서 가져와서 세션에 저장
+        User securityUser = getUserFromSecurity();
+        if (securityUser != null && session != null) {
+            session.setAttribute(CURRENT_USER_KEY, securityUser);
+        }
+
+        return securityUser;
+    }
+
+    /**
+     * Spring Security에서 현재 인증된 사용자 정보를 가져옵니다.
+     */
+    private static User getUserFromSecurity() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated() &&
+                !"anonymousUser".equals(authentication.getPrincipal())) {
+
+                String username = authentication.getName();
+                if (userRepository != null) {
+                    return userRepository.findByUsername(username).orElse(null);
+                }
+            }
+        } catch (Exception e) {
+            // Security Context에서 사용자 정보를 가져올 수 없는 경우
+        }
+        return null;
     }
 
     /**

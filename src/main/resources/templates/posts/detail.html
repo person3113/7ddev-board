@@ -362,7 +362,7 @@
         function loadLikeStatus() {
             fetch(`/posts/${postId}/like-status`)
                 .then(response => response.json())
-                .then data => {
+                .then(data => {
                     if (data.success) {
                         updateUI(data.likeCount, data.dislikeCount, data.userLikeStatus);
                     }
