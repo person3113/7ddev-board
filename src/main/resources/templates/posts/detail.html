@@ -115,25 +115,129 @@
                     <h5>댓글</h5>
                     <div th:if="${post.comments != null and !post.comments.empty}">
                         <div th:each="comment : ${post.comments}"
-                             th:if="!${comment.deleted}"
+                             th:if="!${comment.deleted} and !${comment.isReply()}"
                              class="card mt-2">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start">
-                                    <div>
+                                    <div class="flex-grow-1">
                                         <h6 class="card-subtitle mb-2 text-muted" th:text="${comment.author.nickname}">댓글 작성자</h6>
                                         <p class="card-text" th:text="${comment.content}" th:id="'comment-content-' + ${comment.id}">댓글 내용</p>
                                         <small class="text-muted" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</small>
-                                    </div>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button"
-                                                class="btn btn-outline-primary"
-                                                th:data-comment-id="${comment.id}"
-                                                th:data-comment-content="${comment.content}"
-                                                onclick="editComment(this)">수정</button>
-                                        <button type="button"
-                                                class="btn btn-outline-danger"
-                                                th:data-comment-id="${comment.id}"
-                                                onclick="deleteComment(this)">삭제</button>
+
+                                        <!-- 댓글 액션 버튼들 -->
+                                        <div class="mt-2">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <!-- 좋아요 버튼 -->
+                                                <button type="button"
+                                                        class="btn btn-outline-primary btn-sm like-btn"
+                                                        th:data-comment-id="${comment.id}"
+                                                        onclick="toggleCommentLike(this)">
+                                                    👍 <span th:text="${comment.likeCount}">0</span>
+                                                </button>
+
+                                                <!-- 대댓글 버튼 -->
+                                                <button type="button"
+                                                        class="btn btn-outline-secondary btn-sm"
+                                                        th:data-comment-id="${comment.id}"
+                                                        onclick="showReplyForm(this)">
+                                                    💬 답글
+                                                </button>
+
+                                                <!-- 신고 버튼 -->
+                                                <button type="button"
+                                                        class="btn btn-outline-warning btn-sm"
+                                                        th:data-comment-id="${comment.id}"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#commentReportModal"
+                                                        onclick="setReportCommentId(this)">
+                                                    ⚠️ 신고
+                                                </button>
+
+                                                <!-- 수정/삭제 버튼 (작성자만) -->
+                                                <button type="button"
+                                                        class="btn btn-outline-primary btn-sm"
+                                                        th:data-comment-id="${comment.id}"
+                                                        th:data-comment-content="${comment.content}"
+                                                        onclick="editComment(this)">수정</button>
+                                                <button type="button"
+                                                        class="btn btn-outline-danger btn-sm"
+                                                        th:data-comment-id="${comment.id}"
+                                                        onclick="deleteComment(this)">삭제</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- 대댓글 작성 폼 (숨김) -->
+                                        <div class="reply-form mt-3" th:id="'reply-form-' + ${comment.id}" style="display: none;">
+                                            <div class="card bg-light">
+                                                <div class="card-body">
+                                                    <h6>답글 작성</h6>
+                                                    <form class="reply-submit-form" th:data-parent-id="${comment.id}">
+                                                        <div class="mb-3">
+                                                            <textarea class="form-control"
+                                                                      name="content"
+                                                                      rows="2"
+                                                                      placeholder="답글을 입력하세요..."
+                                                                      required></textarea>
+                                                        </div>
+                                                        <div class="d-flex gap-2">
+                                                            <button type="submit" class="btn btn-primary btn-sm">답글 작성</button>
+                                                            <button type="button" class="btn btn-secondary btn-sm" onclick="hideReplyForm(this)">취소</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 대댓글 목록 -->
+                                        <div th:if="${comment.children != null and !comment.children.empty}" class="mt-3">
+                                            <div th:each="reply : ${comment.children}"
+                                                 th:if="!${reply.deleted}"
+                                                 class="card bg-light ms-4">
+                                                <div class="card-body py-2">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div class="flex-grow-1">
+                                                            <h6 class="card-subtitle mb-1 text-muted small" th:text="${reply.author.nickname}">답글 작성자</h6>
+                                                            <p class="card-text small" th:text="${reply.content}" th:id="'comment-content-' + ${reply.id}">답글 내용</p>
+                                                            <small class="text-muted" th:text="${#temporals.format(reply.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</small>
+
+                                                            <!-- 대댓글 액션 버튼들 -->
+                                                            <div class="mt-1">
+                                                                <div class="btn-group btn-group-sm" role="group">
+                                                                    <!-- 좋아요 버튼 -->
+                                                                    <button type="button"
+                                                                            class="btn btn-outline-primary btn-sm like-btn"
+                                                                            th:data-comment-id="${reply.id}"
+                                                                            onclick="toggleCommentLike(this)">
+                                                                        👍 <span th:text="${reply.likeCount}">0</span>
+                                                                    </button>
+
+                                                                    <!-- 신고 버튼 -->
+                                                                    <button type="button"
+                                                                            class="btn btn-outline-warning btn-sm"
+                                                                            th:data-comment-id="${reply.id}"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#commentReportModal"
+                                                                            onclick="setReportCommentId(this)">
+                                                                        ⚠️ 신고
+                                                                    </button>
+
+                                                                    <!-- 수정/삭제 버튼 (작성자만) -->
+                                                                    <button type="button"
+                                                                            class="btn btn-outline-primary btn-sm"
+                                                                            th:data-comment-id="${reply.id}"
+                                                                            th:data-comment-content="${reply.content}"
+                                                                            onclick="editComment(this)">수정</button>
+                                                                    <button type="button"
+                                                                            class="btn btn-outline-danger btn-sm"
+                                                                            th:data-comment-id="${reply.id}"
+                                                                            onclick="deleteComment(this)">삭제</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -196,6 +300,45 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
                     <button type="button" class="btn btn-primary" id="submitReportBtn">신고하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 댓글 신고 모달 -->
+    <div class="modal fade" id="commentReportModal" tabindex="-1" aria-labelledby="commentReportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="commentReportModalLabel">댓글 신고</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="commentReportForm">
+                        <div class="mb-3">
+                            <label for="commentReportReason" class="form-label">신고 사유</label>
+                            <select class="form-select" id="commentReportReason" name="reason" required>
+                                <option value="">선택하세요...</option>
+                                <option value="1">스팸/홍보성 댓글</option>
+                                <option value="2">욕설/비하 발언</option>
+                                <option value="3">음란물</option>
+                                <option value="4">기타</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="commentAdditionalInfoGroup" style="display: none;">
+                            <label for="commentAdditionalInfo" class="form-label">추가 정보</label>
+                            <textarea class="form-control" id="commentAdditionalInfo" name="additionalInfo" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="commentReporterContact" class="form-label">신고자 연락처</label>
+                            <input type="text" class="form-control" id="commentReporterContact" name="reporterContact" required>
+                        </div>
+                        <input type="hidden" id="reportCommentId" name="commentId">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                    <button type="button" class="btn btn-primary" id="submitCommentReportBtn">신고하기</button>
                 </div>
             </div>
         </div>
@@ -411,6 +554,66 @@
             }
         });
 
+        // 댓글 신고 모달에서 신고하기 버튼 클릭 시 처리
+        document.getElementById('submitCommentReportBtn').addEventListener('click', function(event) {
+            // 중복 실행 방지
+            if (isReportSubmitting) {
+                return;
+            }
+
+            const form = document.getElementById('commentReportForm');
+            if (form.checkValidity()) {
+                // 실행 중 플래그 설정 및 버튼 비활성화
+                isReportSubmitting = true;
+                this.disabled = true;
+                this.textContent = '신고 중...';
+
+                const formData = new FormData(form);
+                const commentId = formData.get('commentId');
+                const reason = getReasonText(formData.get('reason'));
+
+                const requestData = {
+                    reporterId: 1, // 현재 사용자 ID (하드코딩)
+                    reason: reason
+                };
+
+                // 서버에 댓글 신고 요청
+                fetch(`/comments/${commentId}/report`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage('댓글이 신고되었습니다. 감사합니다.', 'success');
+                        // 모달 닫기
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('commentReportModal'));
+                        modal.hide();
+                        // 폼 초기화
+                        form.reset();
+                    } else {
+                        showMessage(data.message || '신고 처리 중 오류가 발생했습니다.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('댓글 신고 처리 실패:', error);
+                    showMessage('신고 처리 중 오류가 발생했습니다.', 'error');
+                })
+                .finally(() => {
+                    // 실행 완료 후 플래그 초기화 및 버튼 복원
+                    isReportSubmitting = false;
+                    this.disabled = false;
+                    this.textContent = '신고하기';
+                });
+            } else {
+                form.reportValidity();
+            }
+        });
+
         // 댓글 수정 버튼 클릭 시 처리
         function editComment(button) {
             console.log('editComment 호출됨'); // 디버깅용 로그
@@ -584,6 +787,216 @@
             // 수정/삭제 버튼 다시 표시
             const buttonGroup = cardBody.querySelector('.btn-group');
             buttonGroup.style.display = 'flex';
+        }
+
+        // 댓글 좋아요/비추천 토글
+        function toggleCommentLike(button) {
+            const commentId = button.getAttribute('data-comment-id');
+            const userId = 1; // 현재 사용자 ID (하드코딩)
+
+            fetch(`/comments/${commentId}/like?userId=${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 버튼 상태 업데이트
+                    if (data.isLiked) {
+                        button.classList.remove('btn-outline-primary');
+                        button.classList.add('btn-primary');
+                    } else {
+                        button.classList.remove('btn-primary');
+                        button.classList.add('btn-outline-primary');
+                    }
+
+                    // 댓글 좋아요 수 업데이트
+                    const likeCountSpan = button.querySelector('span');
+                    likeCountSpan.textContent = data.likeCount;
+
+                    showMessage(data.message, data.isLiked ? 'success' : 'info');
+                } else {
+                    showMessage(data.message || '처리 중 오류가 발생했습니다.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('댓글 좋아요 처리 실패:', error);
+                showMessage('처리 중 오류가 발생했습니다.', 'error');
+            });
+        }
+
+        // 대댓글 작성 폼 표시
+        function showReplyForm(button) {
+            const commentId = button.getAttribute('data-comment-id');
+            const replyForm = document.getElementById('reply-form-' + commentId);
+
+            if (replyForm) {
+                replyForm.style.display = 'block';
+                button.style.display = 'none'; // 대댓글 버튼 숨기기
+            }
+        }
+
+        // 대댓글 작성 폼 숨기기
+        function hideReplyForm(button) {
+            const replyForm = button.closest('.reply-form');
+            if (replyForm) {
+                replyForm.style.display = 'none';
+
+                // 대댓글 버튼 다시 보이기
+                const commentId = replyForm.id.split('-').pop();
+                const replyButton = document.querySelector(`[data-comment-id="${commentId}"][onclick*="showReplyForm"]`);
+                if (replyButton) {
+                    replyButton.style.display = 'inline-block';
+                }
+            }
+        }
+
+        // 댓글 신고 모달에서 댓글 ID 설정
+        function setReportCommentId(button) {
+            const commentId = button.getAttribute('data-comment-id');
+            document.getElementById('reportCommentId').value = commentId;
+        }
+
+        // 댓글 신고 사유 선택 시 추가 정보 입력란 토글
+        document.getElementById('commentReportReason').addEventListener('change', function() {
+            const additionalInfoGroup = document.getElementById('commentAdditionalInfoGroup');
+            if (this.value === '4') { // '기타' 선택 시
+                additionalInfoGroup.style.display = 'block';
+            } else {
+                additionalInfoGroup.style.display = 'none';
+            }
+        });
+
+        // 댓글 신고 제출 처리 (중복 실행 방지)
+        let isReportSubmitting = false; // 중복 실행 방지 플래그
+
+        document.getElementById('submitCommentReportBtn').addEventListener('click', function(event) {
+            // 중복 실행 방지
+            if (isReportSubmitting) {
+                return;
+            }
+
+            const form = document.getElementById('commentReportForm');
+            if (form.checkValidity()) {
+                // 실행 중 플래그 설정 및 버튼 비활성화
+                isReportSubmitting = true;
+                this.disabled = true;
+                this.textContent = '신고 중...';
+
+                const formData = new FormData(form);
+                const commentId = formData.get('commentId');
+                const reason = getReasonText(formData.get('reason'));
+
+                const requestData = {
+                    reporterId: 1, // 현재 사용자 ID (하드코딩)
+                    reason: reason
+                };
+
+                // 서버에 댓글 신고 요청
+                fetch(`/comments/${commentId}/report`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage('댓글이 신고되었습니다. 감사합니다.', 'success');
+                        // 모달 닫기
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('commentReportModal'));
+                        modal.hide();
+                        // 폼 초기화
+                        form.reset();
+                    } else {
+                        showMessage(data.message || '신고 처리 중 오류가 발생했습니다.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('댓글 신고 처리 실패:', error);
+                    showMessage('신고 처리 중 오류가 발생했습니다.', 'error');
+                })
+                .finally(() => {
+                    // 실행 완료 후 플래그 초기화 및 버튼 복원
+                    isReportSubmitting = false;
+                    this.disabled = false;
+                    this.textContent = '신고하기';
+                });
+            } else {
+                form.reportValidity();
+            }
+        });
+
+        // 대댓글 제출 처리
+        document.addEventListener('submit', function(event) {
+            if (event.target.classList.contains('reply-submit-form')) {
+                event.preventDefault();
+
+                const form = event.target;
+                const formData = new FormData(form);
+                const parentId = form.getAttribute('data-parent-id');
+                const content = formData.get('content').trim();
+
+                if (!content) {
+                    showMessage('답글 내용을 입력해주세요.', 'error');
+                    return;
+                }
+
+                const requestData = {
+                    content: content,
+                    authorId: 1 // 현재 사용자 ID (하드코딩)
+                };
+
+                // 서버에 대댓글 등록 요청
+                fetch(`/comments/${parentId}/replies`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('서버 오류가 발생했습니다.');
+                    }
+                })
+                .then(data => {
+                    // CommentDto 객체가 반환되므로 data.id가 있으면 성공
+                    if (data && data.id) {
+                        showMessage('답글이 등록되었습니다.', 'success');
+                        // 폼 초기화 및 숨기기
+                        form.reset();
+                        hideReplyForm(form.querySelector('button[type="button"]'));
+                        // 페이지 새로고침으로 새 댓글 표시
+                        window.location.reload();
+                    } else {
+                        showMessage('답글 등록 중 오류가 발생했습니다.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('답글 등록 실패:', error);
+                    showMessage('답글 등록 중 오류가 발생했습니다.', 'error');
+                });
+            }
+        });
+
+        // 신고 사유 텍스트 변환
+        function getReasonText(reasonCode) {
+            const reasons = {
+                '1': '스팸/홍보성 댓글',
+                '2': '욕설/비하 발언',
+                '3': '음란물',
+                '4': '기타'
+            };
+            return reasons[reasonCode] || '기타';
         }
     </script>
 </th:block>

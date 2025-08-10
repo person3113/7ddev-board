@@ -87,6 +87,33 @@ public class ReportService {
     }
 
     /**
+     * 댓글 신고 (User 엔티티 사용)
+     */
+    @Transactional
+    public ReportedComment reportComment(Long commentId, User reporter, String reason) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("댓글을 찾을 수 없습니다. ID: " + commentId));
+
+        // 중복 신고 방지
+        if (reportedCommentRepository.findByCommentAndReporter(comment, reporter).isPresent()) {
+            throw new AlreadyReportedException("이미 신고한 댓글입니다.");
+        }
+
+        ReportedComment reportedComment = ReportedComment.builder()
+                .comment(comment)
+                .reporter(reporter)
+                .reason(reason)
+                .status(ReportStatus.PENDING)
+                .build();
+
+        ReportedComment saved = reportedCommentRepository.save(reportedComment);
+        log.info("댓글 신고 완료 - Comment ID: {}, Reporter ID: {}, Report ID: {}",
+                commentId, reporter.getId(), saved.getId());
+
+        return saved;
+    }
+
+    /**
      * 게시글 신고 상태 변경
      */
     @Transactional
