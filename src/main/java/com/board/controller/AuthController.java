@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -27,6 +28,28 @@ public class AuthController {
     @GetMapping("/login")
     public String loginForm() {
         return "auth/login";
+    }
+
+    @PostMapping("/login")
+    public String login(@ModelAttribute LoginRequest request,
+                       HttpSession session,
+                       Model model) {
+        User user = userService.authenticateUser(request.getUsername(), request.getPassword());
+
+        if (user != null) {
+            session.setAttribute("currentUser", user);
+            userService.updateLastLogin(user.getUsername());
+            return "redirect:/posts";
+        } else {
+            model.addAttribute("error", "아이디 또는 비밀번호가 잘못되었습니다.");
+            return "auth/login";
+        }
+    }
+
+    @PostMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/login";
     }
 
     @GetMapping("/register")
@@ -65,6 +88,15 @@ public class AuthController {
             bindingResult.reject("duplicate.user", e.getMessage());
             return "auth/register";
         }
+    }
+
+    @Data
+    public static class LoginRequest {
+        @NotBlank(message = "사용자명은 필수입니다.")
+        private String username;
+
+        @NotBlank(message = "비밀번호는 필수입니다.")
+        private String password;
     }
 
     @Data

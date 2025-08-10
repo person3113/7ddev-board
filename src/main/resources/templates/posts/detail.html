@@ -35,13 +35,13 @@
                             <div class="col-auto">
                                 <div class="d-flex gap-2">
                                     <!-- 수정 버튼 (작성자만) -->
-                                    <a th:href="@{/posts/{id}/edit(id=${post.id}, userId=1)}"
+                                    <a th:href="@{/posts/{id}/edit(id=${post.id}, userId=${currentUserId})}"
                                        class="btn btn-outline-primary btn-sm">수정</a>
                                     <!-- 삭제 버튼 (작성자만) -->
                                     <form th:action="@{/posts/{id}(id=${post.id})}"
                                           method="post" style="display: inline;">
                                         <input type="hidden" name="_method" value="delete">
-                                        <input type="hidden" name="userId" value="1">
+                                        <input type="hidden" name="userId" th:value="${currentUserId}">
                                         <button type="submit"
                                                 class="btn btn-outline-danger btn-sm"
                                                 onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
@@ -256,7 +256,7 @@
                                               placeholder="댓글을 입력하세요..."
                                               required></textarea>
                                 </div>
-                                <input type="hidden" name="authorId" value="1">
+                                <input type="hidden" name="authorId" th:value="${currentUserId}">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <button type="submit" class="btn btn-primary">댓글 작성</button>
                             </form>
@@ -347,8 +347,9 @@
 
 <th:block layout:fragment="scripts">
     <script th:inline="javascript">
-        // 게시글 ID를 JavaScript 변수로 전달
+        // 게시글 ID와 현재 사용자 ID를 JavaScript 변수로 전달
         const postId = /*[[${post.id}]]*/ 1;
+        const currentUserId = /*[[${currentUserId}]]*/ 1;
         const csrfToken = /*[[${_csrf.token}]]*/ 'CSRF_TOKEN';
         const csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
 
@@ -361,7 +362,7 @@
         function loadLikeStatus() {
             fetch(`/posts/${postId}/like-status`)
                 .then(response => response.json())
-                .then(data => {
+                .then data => {
                     if (data.success) {
                         updateUI(data.likeCount, data.dislikeCount, data.userLikeStatus);
                     }
@@ -573,7 +574,7 @@
                 const reason = getReasonText(formData.get('reason'));
 
                 const requestData = {
-                    reporterId: 1, // 현재 사용자 ID (하드코딩)
+                    reporterId: currentUserId, // 현재 사용자 ID (동적)
                     reason: reason
                 };
 
@@ -682,7 +683,7 @@
                 },
                 body: JSON.stringify({
                     content: newContent,
-                    authorId: 1  // 현재 사용자 ID (하드코딩)
+                    authorId: currentUserId  // 현재 사용자 ID (동적)
                 })
             })
             .then(response => {
@@ -737,7 +738,7 @@
                         [csrfHeader]: csrfToken // CSRF 토큰 추가
                     },
                     body: JSON.stringify({
-                        authorId: 1  // 현재 사용자 ID (하드코딩)
+                        authorId: currentUserId  // 현재 사용자 ID (동적)
                     })
                 })
                 .then(response => {
@@ -792,7 +793,7 @@
         // 댓글 좋아요/비추천 토글
         function toggleCommentLike(button) {
             const commentId = button.getAttribute('data-comment-id');
-            const userId = 1; // 현재 사용자 ID (하드코딩)
+            const userId = currentUserId; // 현재 사용자 ID (동적)
 
             fetch(`/comments/${commentId}/like?userId=${userId}`, {
                 method: 'POST',
@@ -891,7 +892,7 @@
                 const reason = getReasonText(formData.get('reason'));
 
                 const requestData = {
-                    reporterId: 1, // 현재 사용자 ID (하드코딩)
+                    reporterId: currentUserId, // 현재 사용자 ID (동적)
                     reason: reason
                 };
 
@@ -949,7 +950,7 @@
 
                 const requestData = {
                     content: content,
-                    authorId: 1 // 현재 사용자 ID (하드코딩)
+                    authorId: currentUserId // 현재 사용자 ID (동적)
                 };
 
                 // 서버에 대댓글 등록 요청

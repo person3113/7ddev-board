@@ -7,7 +7,9 @@ import com.board.service.PostService;
 import com.board.service.LikeService;
 import com.board.service.ViewService;
 import com.board.service.MarkdownService;
+import com.board.util.SessionUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -76,7 +78,7 @@ public class PostController {
      * GET /posts/{id}
      */
     @GetMapping("/{id}")
-    public String getPost(@PathVariable Long id, Model model, HttpServletRequest request) {
+    public String getPost(@PathVariable Long id, Model model, HttpServletRequest request, HttpSession session) {
         log.debug("게시글 상세 조회 요청 - ID: {}", id);
 
         try {
@@ -100,8 +102,14 @@ public class PostController {
                 log.debug("일반 텍스트 렌더링 적용 (줄바꿈 포함) - 게시글 ID: {}", post.getId());
             }
 
+            // 현재 사용자 정보를 템플릿에 전달
+            User currentUser = SessionUtil.getCurrentUser(session);
+            Long currentUserId = SessionUtil.getCurrentUserIdSafe(session);
+
             model.addAttribute("post", post);
             model.addAttribute("htmlContent", htmlContent);
+            model.addAttribute("currentUser", currentUser);
+            model.addAttribute("currentUserId", currentUserId);
 
             log.debug("게시글 상세 조회 완료 - ID: {}, 제목: {}, 조회수: {}, 마크다운: {}",
                      post.getId(), post.getTitle(), post.getViewCount(), post.getIsMarkdown());
@@ -286,12 +294,12 @@ public class PostController {
      */
     @PostMapping("/{id}/like")
     @ResponseBody
-    public Map<String, Object> likePost(@PathVariable Long id, HttpServletRequest request) {
+    public Map<String, Object> likePost(@PathVariable Long id, HttpSession session) {
         log.debug("게시글 추천 요청 - ID: {}", id);
 
         try {
-            // 임시로 사용자 ID 1 사용 (실제로는 인증된 사용자 정보 사용)
-            Long userId = 1L;
+            // 세션에서 현재 사용자 ID 가져오기
+            Long userId = SessionUtil.getCurrentUserId(session);
 
             likeService.likePost(id, userId);
 
@@ -321,12 +329,12 @@ public class PostController {
      */
     @PostMapping("/{id}/dislike")
     @ResponseBody
-    public Map<String, Object> dislikePost(@PathVariable Long id, HttpServletRequest request) {
+    public Map<String, Object> dislikePost(@PathVariable Long id, HttpSession session) {
         log.debug("게시글 비추천 요청 - ID: {}", id);
 
         try {
-            // 임시로 사용자 ID 1 사용 (실제로는 인증된 사용자 정보 사용)
-            Long userId = 1L;
+            // 세션에서 현재 사용자 ID 가져오기
+            Long userId = SessionUtil.getCurrentUserId(session);
 
             likeService.dislikePost(id, userId);
 
@@ -358,12 +366,12 @@ public class PostController {
      */
     @DeleteMapping("/{id}/like")
     @ResponseBody
-    public Map<String, Object> cancelLike(@PathVariable Long id, HttpServletRequest request) {
+    public Map<String, Object> cancelLike(@PathVariable Long id, HttpSession session) {
         log.debug("추천/비추천 취소 요청 - ID: {}", id);
 
         try {
-            // 임시로 사용자 ID 1 사용 (실제로는 인증된 사용자 정보 사용)
-            Long userId = 1L;
+            // 세션에서 현재 사용자 ID 가져오기
+            Long userId = SessionUtil.getCurrentUserId(session);
 
             likeService.cancelLike(id, userId);
 
@@ -395,12 +403,12 @@ public class PostController {
      */
     @GetMapping("/{id}/like-status")
     @ResponseBody
-    public Map<String, Object> getLikeStatus(@PathVariable Long id, HttpServletRequest request) {
+    public Map<String, Object> getLikeStatus(@PathVariable Long id, HttpSession session) {
         log.debug("사용자 추천 상태 조회 요청 - ID: {}", id);
 
         try {
-            // 임시로 사용자 ID 1 사용 (실제로는 인증된 사용자 정보 사용)
-            Long userId = 1L;
+            // 세션에서 현재 사용자 ID 가져오기 (로그인하지 않은 경우에도 안전하게 처리)
+            Long userId = SessionUtil.getCurrentUserIdSafe(session);
 
             Long likeCount = likeService.getLikeCount(id);
             Long dislikeCount = likeService.getDislikeCount(id);

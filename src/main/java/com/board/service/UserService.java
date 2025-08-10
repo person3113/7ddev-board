@@ -71,4 +71,19 @@ public class UserService {
         user.updateLastLogin();
         userRepository.save(user);
     }
+
+    /**
+     * 사용자 인증 (로그인)
+     */
+    public User authenticateUser(String username, String password) {
+        try {
+            User user = findByUsername(username);
+            if (checkPassword(password, user.getPassword())) {
+                return user;
+            }
+            return null;
+        } catch (ResourceNotFoundException e) {
+            return null;
+        }
+    }
 }
