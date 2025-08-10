@@ -5,6 +5,7 @@ import com.board.domain.entity.ReportedPost;
 import com.board.domain.entity.User;
 import com.board.domain.enums.ReportStatus;
 import com.board.service.ReportService;
+import com.board.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -12,6 +13,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -28,29 +31,33 @@ import java.util.Map;
 public class ReportController {
 
     private final ReportService reportService;
+    private final UserService userService;
 
     /**
      * 게시글 신고 처리 (AJAX)
      */
-    @PostMapping("/api/posts/{postId}/report")
+    @PostMapping("/posts/{postId}/report")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> reportPost(
             @PathVariable Long postId,
-            @RequestParam String reason,
-            HttpSession session) {
+            @RequestParam String reason) {
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            // 세션에서 현재 사용자 ID 가져오기 (실제로는 Security Context에서 가져와야 함)
-            Long userId = (Long) session.getAttribute("userId");
-            if (userId == null) {
+            // Spring Security에서 현재 인증된 사용자 정보 가져오기
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated() ||
+                    "anonymousUser".equals(authentication.getPrincipal())) {
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
                 return ResponseEntity.badRequest().body(response);
             }
 
-            ReportedPost reportedPost = reportService.reportPost(postId, userId, reason);
+            String username = authentication.getName();
+            User user = userService.findByUsername(username);
+
+            ReportedPost reportedPost = reportService.reportPost(postId, user.getId(), reason);
 
             response.put("success", true);
             response.put("message", "신고가 접수되었습니다.");
@@ -73,20 +80,24 @@ public class ReportController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> reportComment(
             @PathVariable Long commentId,
-            @RequestParam String reason,
-            HttpSession session) {
+            @RequestParam String reason) {
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            Long userId = (Long) session.getAttribute("userId");
-            if (userId == null) {
+            // Spring Security에서 현재 인증된 사용자 정보 가져오기
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated() ||
+                    "anonymousUser".equals(authentication.getPrincipal())) {
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
                 return ResponseEntity.badRequest().body(response);
             }
 
-            ReportedComment reportedComment = reportService.reportComment(commentId, userId, reason);
+            String username = authentication.getName();
+            User user = userService.findByUsername(username);
+
+            ReportedComment reportedComment = reportService.reportComment(commentId, user.getId(), reason);
 
             response.put("success", true);
             response.put("message", "신고가 접수되었습니다.");

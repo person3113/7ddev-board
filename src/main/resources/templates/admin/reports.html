@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
-<head th:replace="admin/layout :: admin-head('관리자 - 신고 관리')"></head>
+<head th:replace="~{admin/layout :: admin-head('관리자 - 신고 관리')}"></head>
 <body>
-    <nav th:replace="admin/layout :: admin-nav"></nav>
+    <nav th:replace="~{admin/layout :: admin-nav}"></nav>
 
     <div class="container-fluid mt-4">
         <div class="row">
             <!-- 사이드바 -->
-            <div th:replace="admin/layout :: admin-sidebar('reports')"></div>
+            <div th:replace="~{admin/layout :: admin-sidebar('reports')}"></div>
 
             <!-- 메인 콘텐츠 -->
             <div class="col-md-9">
@@ -122,8 +122,7 @@
                                             </div>
                                         </div>
                                         <div class="col-md-4 text-end">
-                                            <span th:class="'badge ' + (${report.status.name()} == 'PENDING' ? 'bg-warning' :
-                                                            ${report.status.name()} == 'RESOLVED' ? 'bg-success' : 'bg-secondary')"
+                                            <span th:class="|badge ${report.status.name() == 'PENDING' ? 'bg-warning' : (report.status.name() == 'RESOLVED' ? 'bg-success' : 'bg-secondary')}|"
                                                   th:text="${report.status.name()}">상태</span>
 
                                             <div th:if="${report.status.name() == 'PENDING'}" class="mt-2">
@@ -174,8 +173,7 @@
                                             </div>
                                         </div>
                                         <div class="col-md-4 text-end">
-                                            <span th:class="'badge ' + (${report.status.name()} == 'PENDING' ? 'bg-warning' :
-                                                            ${report.status.name()} == 'RESOLVED' ? 'bg-success' : 'bg-secondary')"
+                                            <span th:class="|badge ${report.status.name() == 'PENDING' ? 'bg-warning' : (report.status.name() == 'RESOLVED' ? 'bg-success' : 'bg-secondary')}|"
                                                   th:text="${report.status.name()}">상태</span>
 
                                             <div th:if="${report.status.name() == 'PENDING'}" class="mt-2">
@@ -217,7 +215,7 @@
         </div>
     </div>
 
-    <div th:replace="admin/layout :: admin-scripts"></div>
+    <div th:replace="~{admin/layout :: admin-scripts}"></div>
     <script>
         function updateReportStatus(reportId, status, type) {
             if (!confirm('신고 상태를 변경하시겠습니까?')) {

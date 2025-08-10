@@ -234,6 +234,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
                 }
             })
             .then(response => response.json())
@@ -257,6 +258,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
                 }
             })
             .then(response => response.json())
@@ -280,6 +282,7 @@
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
                 }
             })
             .then(response => response.json())
@@ -373,15 +376,19 @@
             const form = document.getElementById('reportForm');
             if (form.checkValidity()) {
                 const formData = new FormData(form);
-                const data = Object.fromEntries(formData.entries());
 
-                // 서버에 신고 내용 전송 (예: POST /posts/{postId}/report)
+                // URLSearchParams로 변환하여 form-urlencoded 형태로 전송
+                const params = new URLSearchParams();
+                params.append('reason', formData.get('reason'));
+
+                // 서버에 신고 내용 전송
                 fetch(`/posts/${postId}/report`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        [csrfHeader]: csrfToken
                     },
-                    body: JSON.stringify(data)
+                    body: params
                 })
                 .then(response => response.json())
                 .then(result => {
