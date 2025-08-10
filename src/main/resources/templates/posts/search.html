@@ -1,146 +1,149 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>게시글 검색</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <h2>게시글 검색</h2>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}" th:with="pageTitle='게시글 검색'">
 
-            <!-- 검색 폼 -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <form method="get" th:action="@{/posts/search}">
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label for="searchType" class="form-label">검색 유형</label>
-                                <select class="form-select" id="searchType" name="searchType" th:value="${searchType}">
-                                    <option value="title" th:selected="${searchType == 'title'}">제목</option>
-                                    <option value="content" th:selected="${searchType == 'content'}">내용</option>
-                                    <option value="author" th:selected="${searchType == 'author'}">작성자</option>
-                                    <option value="category" th:selected="${searchType == 'category'}">카테고리</option>
-                                    <option value="title_content" th:selected="${searchType == 'title_content'}">제목+내용</option>
-                                    <option value="all" th:selected="${searchType == 'all'}">전체</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="keyword" class="form-label">검색어</label>
-                                <input type="text" class="form-control" id="keyword" name="keyword"
-                                       th:value="${keyword}" placeholder="검색어를 입력하세요">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">&nbsp;</label>
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary">검색</button>
+<th:block layout:fragment="head">
+    <!-- 검색 페이지 전용 CSS -->
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>게시글 검색</h2>
+
+                <!-- 검색 폼 -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form method="get" th:action="@{/posts/search}">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="searchType" class="form-label">검색 유형</label>
+                                    <select class="form-select" id="searchType" name="searchType" th:value="${searchType}">
+                                        <option value="title" th:selected="${searchType == 'title'}">제목</option>
+                                        <option value="content" th:selected="${searchType == 'content'}">내용</option>
+                                        <option value="author" th:selected="${searchType == 'author'}">작성자</option>
+                                        <option value="category" th:selected="${searchType == 'category'}">카테고리</option>
+                                        <option value="title_content" th:selected="${searchType == 'title_content'}">제목+내용</option>
+                                        <option value="all" th:selected="${searchType == 'all'}">전체</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="keyword" class="form-label">검색어</label>
+                                    <input type="text" class="form-control" id="keyword" name="keyword"
+                                           th:value="${keyword}" placeholder="검색어를 입력하세요">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">검색</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- 검색 결과 정보 -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <span th:if="${totalElements > 0}" class="text-muted">
-                        총 <strong th:text="${totalElements}">0</strong>개의 게시글이 검색되었습니다.
-                    </span>
-                    <span th:if="${totalElements == 0}" class="text-muted">
-                        검색 결과가 없습니다.
-                    </span>
-                </div>
-                <a th:href="@{/posts}" class="btn btn-outline-secondary">전체 게시글</a>
-            </div>
-
-            <!-- 검색 결과 목록 -->
-            <div class="card" th:if="${totalElements > 0}">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col" style="width: 60px;">번호</th>
-                                    <th scope="col">제목</th>
-                                    <th scope="col" style="width: 120px;">카테고리</th>
-                                    <th scope="col" style="width: 120px;">작성자</th>
-                                    <th scope="col" style="width: 80px;">조회수</th>
-                                    <th scope="col" style="width: 80px;">추천</th>
-                                    <th scope="col" style="width: 120px;">작성일</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="post, iterStat : ${posts.content}">
-                                    <td th:text="${totalElements - (currentPage * 10) - iterStat.index}">1</td>
-                                    <td>
-                                        <a th:href="@{/posts/{id}(id=${post.id})}"
-                                           class="text-decoration-none"
-                                           th:text="${post.title}">게시글 제목</a>
-                                        <span th:if="${post.notice}" class="badge bg-danger ms-1">공지</span>
-                                    </td>
-                                    <td>
-                                        <span th:if="${post.category}"
-                                              class="badge bg-secondary"
-                                              th:text="${post.category}">카테고리</span>
-                                        <span th:unless="${post.category}" class="text-muted">-</span>
-                                    </td>
-                                    <td th:text="${post.author.nickname}">작성자</td>
-                                    <td th:text="${post.viewCount}">0</td>
-                                    <td th:text="${post.likeCount}">0</td>
-                                    <td th:text="${#temporals.format(post.createdAt, 'MM-dd HH:mm')}">날짜</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        </form>
                     </div>
                 </div>
-            </div>
 
-            <!-- 검색 결과가 없을 때 -->
-            <div th:if="${totalElements == 0}" class="text-center py-5">
-                <div class="mb-3">
-                    <i class="bi bi-search" style="font-size: 3rem; color: #ccc;"></i>
+                <!-- 검색 결과 정보 -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span th:if="${totalElements > 0}" class="text-muted">
+                            총 <strong th:text="${totalElements}">0</strong>개의 게시글이 검색되었습니다.
+                        </span>
+                        <span th:if="${totalElements == 0}" class="text-muted">
+                            검색 결과가 없습니다.
+                        </span>
+                    </div>
+                    <a th:href="@{/posts}" class="btn btn-outline-secondary">전체 게시글</a>
                 </div>
-                <h5 class="text-muted">검색 결과가 없습니다.</h5>
-                <p class="text-muted">다른 검색어를 입력해보세요.</p>
+
+                <!-- 검색 결과 목록 -->
+                <div class="card" th:if="${totalElements > 0}">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" style="width: 60px;">번호</th>
+                                        <th scope="col">제목</th>
+                                        <th scope="col" style="width: 120px;">카테고리</th>
+                                        <th scope="col" style="width: 120px;">작성자</th>
+                                        <th scope="col" style="width: 80px;">조회수</th>
+                                        <th scope="col" style="width: 80px;">추천</th>
+                                        <th scope="col" style="width: 120px;">작성일</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="post, iterStat : ${posts.content}">
+                                        <td th:text="${totalElements - (currentPage * 10) - iterStat.index}">1</td>
+                                        <td>
+                                            <a th:href="@{/posts/{id}(id=${post.id})}"
+                                               class="text-decoration-none"
+                                               th:text="${post.title}">게시글 제목</a>
+                                            <span th:if="${post.notice}" class="badge bg-danger ms-1">공지</span>
+                                        </td>
+                                        <td>
+                                            <span th:if="${post.category}"
+                                                  class="badge bg-secondary"
+                                                  th:text="${post.category}">카테고리</span>
+                                            <span th:unless="${post.category}" class="text-muted">-</span>
+                                        </td>
+                                        <td th:text="${post.author.nickname}">작성자</td>
+                                        <td th:text="${post.viewCount}">0</td>
+                                        <td th:text="${post.likeCount}">0</td>
+                                        <td th:text="${#temporals.format(post.createdAt, 'MM-dd HH:mm')}">날짜</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 검색 결과가 없을 때 -->
+                <div th:if="${totalElements == 0}" class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-search" style="font-size: 3rem; color: #ccc;"></i>
+                    </div>
+                    <h5 class="text-muted">검색 결과가 없습니다.</h5>
+                    <p class="text-muted">다른 검색어를 입력해보세요.</p>
+                </div>
+
+                <!-- 페이지네이션 -->
+                <nav th:if="${totalPages > 1}" aria-label="검색 결과 페이지네이션" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <!-- 이전 페이지 -->
+                        <li class="page-item" th:classappend="${!hasPrevious} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/posts/search(searchType=${searchType}, keyword=${keyword}, page=${currentPage - 1})}"
+                               th:if="${hasPrevious}">이전</a>
+                            <span class="page-link" th:unless="${hasPrevious}">이전</span>
+                        </li>
+
+                        <!-- 페이지 번호들 -->
+                        <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                            class="page-item"
+                            th:classappend="${pageNum == currentPage} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/posts/search(searchType=${searchType}, keyword=${keyword}, page=${pageNum})}"
+                               th:text="${pageNum + 1}">1</a>
+                        </li>
+
+                        <!-- 다음 페이지 -->
+                        <li class="page-item" th:classappend="${!hasNext} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/posts/search(searchType=${searchType}, keyword=${keyword}, page=${currentPage + 1})}"
+                               th:if="${hasNext}">다음</a>
+                            <span class="page-link" th:unless="${hasNext}">다음</span>
+                        </li>
+                    </ul>
+                </nav>
             </div>
-
-            <!-- 페이지네이션 -->
-            <nav th:if="${totalPages > 1}" aria-label="검색 결과 페이지네이션" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    <!-- 이전 페이지 -->
-                    <li class="page-item" th:classappend="${!hasPrevious} ? 'disabled'">
-                        <a class="page-link"
-                           th:href="@{/posts/search(searchType=${searchType}, keyword=${keyword}, page=${currentPage - 1})}"
-                           th:if="${hasPrevious}">이전</a>
-                        <span class="page-link" th:unless="${hasPrevious}">이전</span>
-                    </li>
-
-                    <!-- 페이지 번호들 -->
-                    <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
-                        class="page-item"
-                        th:classappend="${pageNum == currentPage} ? 'active'">
-                        <a class="page-link"
-                           th:href="@{/posts/search(searchType=${searchType}, keyword=${keyword}, page=${pageNum})}"
-                           th:text="${pageNum + 1}">1</a>
-                    </li>
-
-                    <!-- 다음 페이지 -->
-                    <li class="page-item" th:classappend="${!hasNext} ? 'disabled'">
-                        <a class="page-link"
-                           th:href="@{/posts/search(searchType=${searchType}, keyword=${keyword}, page=${currentPage + 1})}"
-                           th:if="${hasNext}">다음</a>
-                        <span class="page-link" th:unless="${hasNext}">다음</span>
-                    </li>
-                </ul>
-            </nav>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+<th:block layout:fragment="scripts">
+    <!-- 검색 페이지 전용 JavaScript -->
+</th:block>
+
 </html>

@@ -1,42 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="|사용자 프로필 - ${userProfile.nickname}|">사용자 프로필</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/posts"><i class="fas fa-comments"></i> 게시판</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/posts">게시글</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/posts/search">검색</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/posts/new">글쓰기</a>
-                    </li>
-                    <li class="nav-item">
-                        <form th:action="@{/logout}" method="post" style="display: inline;">
-                            <button type="submit" class="nav-link btn btn-link p-0" style="text-decoration: none;">로그아웃</button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}" th:with="pageTitle='사용자 프로필 - ' + ${userProfile.nickname}">
 
+<th:block layout:fragment="head">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</th:block>
+
+<div layout:fragment="content">
     <div class="container mt-4">
         <!-- 사용자 프로필 헤더 -->
         <div class="row">
@@ -242,7 +212,10 @@
             </nav>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+<th:block layout:fragment="scripts">
+    <!-- 프로필 페이지 전용 JavaScript -->
+</th:block>
+
 </html>

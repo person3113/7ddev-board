@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>회원가입 - 7일 게시판</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}" th:with="pageTitle='회원가입'">
+
+<th:block layout:fragment="head">
+    <!-- 회원가입 페이지 전용 CSS -->
+</th:block>
+
+<div layout:fragment="content">
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-6">
@@ -16,7 +16,7 @@
                     </div>
                     <div class="card-body">
                         <form th:action="@{/register}" th:object="${registerRequest}" method="post">
-                            <!-- 전체 에러 메시지 - form 태그 안으로 이동 -->
+                            <!-- 전체 에러 메시지 -->
                             <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
                                 <ul class="mb-0">
                                     <li th:each="error : ${#fields.globalErrors()}" th:text="${error}"></li>
@@ -85,8 +85,9 @@
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<th:block layout:fragment="scripts">
     <script>
         // 비밀번호 확인 실시간 검증
         document.addEventListener('DOMContentLoaded', function() {
@@ -109,5 +110,6 @@
             passwordConfirm.addEventListener('input', validatePassword);
         });
     </script>
-</body>
+</th:block>
+
 </html>
