@@ -92,7 +92,7 @@ spring:
 
   # MySQL 데이터베이스 설정
   datasource:
-    url: jdbc:mysql://localhost:3306/board_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: ${DB_URL:jdbc:mysql://mysql:3306/board_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
     username: ${DB_USERNAME:board_user}
     password: ${DB_PASSWORD:board_password}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -105,10 +105,10 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate  # 프로덕션에서는 validate 사용
+      ddl-auto: update  # 초기 실행을 위해 update로 변경
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.MySQLDialect
         format_sql: false
         use_sql_comments: false
     show-sql: false
