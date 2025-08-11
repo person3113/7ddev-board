@@ -43,7 +43,7 @@ public class Comment {
     @JoinColumn(name = "parent_id")
     private Comment parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @OrderBy("createdAt ASC")
     private List<Comment> children = new ArrayList<>();
 
@@ -111,6 +111,10 @@ public class Comment {
         this.deleted = false;
         this.deletedAt = null;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public String getDisplayContent() {
+        return this.deleted ? "삭제된 댓글입니다." : this.content;
     }
 
     public boolean isAuthor(User user) {

@@ -42,6 +42,11 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     long countByPostAndDeletedFalse(Post post);
 
     /**
+     * 특정 게시글의 모든 댓글 조회 (삭제된 댓글도 포함)
+     */
+    Page<Comment> findByPostOrderByCreatedAtAsc(Post post, Pageable pageable);
+
+    /**
      * 특정 게시글의 최상위 댓글 수 조회 (대댓글 제외)
      */
     long countByPostAndParentIsNullAndDeletedFalse(Post post);

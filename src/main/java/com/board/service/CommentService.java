@@ -102,6 +102,17 @@ public class CommentService {
     }
 
     /**
+     * 게시글별 모든 댓글 조회 (삭제된 댓글도 포함, 대댓글 포함, 페이징)
+     */
+    @Transactional(readOnly = true)
+    public Page<Comment> getCommentsByPost(Long postId, Pageable pageable) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다"));
+
+        return commentRepository.findByPostOrderByCreatedAtAsc(post, pageable);
+    }
+
+    /**
      * 댓글 수정
      */
     public Comment updateComment(Long commentId, String newContent, User user) {
@@ -119,7 +130,12 @@ public class CommentService {
      * 댓글 삭제 (소프트 삭제)
      */
     public void deleteComment(Long commentId, User user) {
-        Comment comment = findById(commentId);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다"));
+
+        if (comment.isDeleted()) {
+            throw new IllegalArgumentException("이미 삭제된 댓글입니다");
+        }
 
         if (!comment.canDelete(user)) {
             throw new IllegalArgumentException("댓글 삭제 권한이 없습니다");

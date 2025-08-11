@@ -27,7 +27,7 @@ public class CommentDto {
     public static CommentDto from(Comment comment) {
         return CommentDto.builder()
                 .id(comment.getId())
-                .content(comment.getContent())
+                .content(comment.getDisplayContent())
                 .authorNickname(comment.getAuthor().getNickname())
                 .authorId(comment.getAuthor().getId())
                 .likeCount(comment.getLikeCount())
@@ -37,7 +37,6 @@ public class CommentDto {
                 .isReply(comment.isReply())
                 .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
                 .children(comment.getChildren().stream()
-                        .filter(child -> !child.isDeleted())
                         .map(CommentDto::from)
                         .collect(Collectors.toList()))
                 .likedByCurrentUser(false) // 기본값, 별도로 설정 필요

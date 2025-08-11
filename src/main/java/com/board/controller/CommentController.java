@@ -113,7 +113,7 @@ public class CommentController {
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<Comment> comments = commentService.findCommentsByPost(postId, pageable);
+        Page<Comment> comments = commentService.getCommentsByPost(postId, pageable);
         Page<CommentDto> commentDtos = comments.map(CommentDto::from);
         return ResponseEntity.ok(commentDtos);
     }

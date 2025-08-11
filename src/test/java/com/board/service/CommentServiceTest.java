@@ -293,4 +293,109 @@ class CommentServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("댓글 삭제 권한이 없습니다");
     }
+
+    @Test
+    @DisplayName("부모 댓글 소프트 삭제 시 대댓글들이 유지된다")
+    void deleteParentComment_ChildrenShouldRemain() {
+        // given
+        Comment parentComment = Comment.builder()
+                .content("부모 댓글")
+                .post(post)
+                .author(author)
+                .build();
+        commentRepository.save(parentComment);
+
+        Comment childComment1 = Comment.builder()
+                .content("대댓글 1")
+                .post(post)
+                .author(author)
+                .parent(parentComment)
+                .build();
+        commentRepository.save(childComment1);
+
+        Comment childComment2 = Comment.builder()
+                .content("대댓글 2")
+                .post(post)
+                .author(otherUser)
+                .parent(parentComment)
+                .build();
+        commentRepository.save(childComment2);
+
+        // when
+        commentService.deleteComment(parentComment.getId(), author);
+
+        // then
+        Comment deletedParent = commentRepository.findById(parentComment.getId()).orElseThrow();
+        assertThat(deletedParent.isDeleted()).isTrue();
+        assertThat(deletedParent.getDeletedAt()).isNotNull();
+
+        // 대댓글들은 여전히 존재하고 삭제되지 않았어야 함
+        Comment child1 = commentRepository.findById(childComment1.getId()).orElseThrow();
+        Comment child2 = commentRepository.findById(childComment2.getId()).orElseThrow();
+        assertThat(child1.isDeleted()).isFalse();
+        assertThat(child2.isDeleted()).isFalse();
+    }
+
+    @Test
+    @DisplayName("삭제된 댓글은 컨텐츠를 특별히 표시해야 한다")
+    void deletedComment_ShouldShowDeletedMessage() {
+        // given
+        Comment comment = Comment.builder()
+                .content("삭제될 댓글")
+                .post(post)
+                .author(author)
+                .build();
+        commentRepository.save(comment);
+
+        // when
+        commentService.deleteComment(comment.getId(), author);
+
+        // then
+        Comment deletedComment = commentRepository.findById(comment.getId()).orElseThrow();
+        assertThat(deletedComment.isDeleted()).isTrue();
+        assertThat(deletedComment.getDisplayContent()).isEqualTo("삭제된 댓글입니다.");
+    }
+
+    @Test
+    @DisplayName("댓글 조회 시 삭제된 댓글도 포함하여 조회된다")
+    void getComments_ShouldIncludeDeletedComments() {
+        // given
+        Comment normalComment = Comment.builder()
+                .content("일반 댓글")
+                .post(post)
+                .author(author)
+                .build();
+        commentRepository.save(normalComment);
+
+        Comment deletedComment = Comment.builder()
+                .content("삭제될 댓글")
+                .post(post)
+                .author(author)
+                .build();
+        commentRepository.save(deletedComment);
+        commentService.deleteComment(deletedComment.getId(), author);
+
+        Comment childOfDeleted = Comment.builder()
+                .content("삭제된 댓글의 대댓글")
+                .post(post)
+                .author(otherUser)
+                .parent(deletedComment)
+                .build();
+        commentRepository.save(childOfDeleted);
+
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Comment> comments = commentService.getCommentsByPost(post.getId(), pageable);
+
+        // then
+        assertThat(comments.getContent()).hasSize(3); // 일반 댓글 + 삭제된 댓글 + 대댓글
+
+        Comment retrievedDeletedComment = comments.getContent().stream()
+                .filter(c -> c.getId().equals(deletedComment.getId()))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(retrievedDeletedComment.isDeleted()).isTrue();
+        assertThat(retrievedDeletedComment.getDisplayContent()).isEqualTo("삭제된 댓글입니다.");
+    }
 }
