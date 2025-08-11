@@ -157,14 +157,15 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByTitleOrContentContainingIgnoreCaseAndDeletedFalse(@Param("keyword") String keyword, Pageable pageable);
 
     /**
-     * 최적화된 전체 검색 (모든 필드)
+     * 최적화된 전체 검색 (모든 필드 + 댓글 내용 포함)
      */
-    @Query("SELECT p FROM Post p JOIN p.author a WHERE " +
+    @Query("SELECT DISTINCT p FROM Post p LEFT JOIN p.author a LEFT JOIN p.comments c WHERE " +
            "p.deleted = false AND " +
            "(LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            " LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            " LOWER(p.category) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           " LOWER(a.nickname) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           " LOWER(a.nickname) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           " (c.deleted = false AND LOWER(c.content) LIKE LOWER(CONCAT('%', :keyword, '%')))) " +
            "ORDER BY p.createdAt DESC")
     Page<Post> findByAllFieldsContainingIgnoreCase(@Param("keyword") String keyword, Pageable pageable);
 
@@ -180,4 +181,21 @@ public interface PostRepository extends JpaRepository<Post, Long> {
            "p.deleted = false AND " +
            "LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Long countByContentContainingIgnoreCaseAndDeletedFalse(@Param("keyword") String keyword);
+
+    /**
+     * 댓글 내용으로 게시글 검색 (최적화)
+     */
+    @Query("SELECT DISTINCT p FROM Post p JOIN p.comments c WHERE " +
+           "p.deleted = false AND c.deleted = false AND " +
+           "LOWER(c.content) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "ORDER BY p.createdAt DESC")
+    Page<Post> findByCommentsContentContainingIgnoreCaseAndDeletedFalse(@Param("keyword") String keyword, Pageable pageable);
+
+    /**
+     * 댓글 내용 검색 결과 카운트
+     */
+    @Query("SELECT COUNT(DISTINCT p) FROM Post p JOIN p.comments c WHERE " +
+           "p.deleted = false AND c.deleted = false AND " +
+           "LOWER(c.content) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Long countByCommentsContentContainingIgnoreCaseAndDeletedFalse(@Param("keyword") String keyword);
 }

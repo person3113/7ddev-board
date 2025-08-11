@@ -103,7 +103,7 @@ public class SearchService {
     }
 
     /**
-     * 모든 필드에서 키워드 검색 (성능 최적화)
+     * 모든 필드에서 키워드 검색 (댓글 내용 포함, 성능 최적화)
      */
     public Page<Post> searchByAllFields(String keyword, Pageable pageable) {
         if (!StringUtils.hasText(keyword)) {
@@ -115,7 +115,7 @@ public class SearchService {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
-        log.debug("전체 필드 검색 실행: keyword={}, page={}, size={}", processedKeyword, pageable.getPageNumber(), pageable.getPageSize());
+        log.debug("전체 필드 검색 실행 (댓글 포함): keyword={}, page={}, size={}", processedKeyword, pageable.getPageNumber(), pageable.getPageSize());
         return postRepository.findByAllFieldsContainingIgnoreCase(processedKeyword, pageable);
     }
 
@@ -155,6 +155,7 @@ public class SearchService {
             case "content" -> searchByContent(keyword, pageable);
             case "author" -> searchByAuthor(keyword, pageable);
             case "category" -> searchByCategory(keyword, pageable);
+            case "comment" -> searchByComments(keyword, pageable);
             case "title_content" -> searchByTitleOrContent(keyword, pageable);
             case "all" -> searchByAllFields(keyword, pageable);
             default -> searchByTitleOrContent(keyword, pageable); // 기본값
@@ -214,7 +215,25 @@ public class SearchService {
         return switch (searchType) {
             case "title" -> postRepository.countByTitleContainingIgnoreCaseAndDeletedFalse(processedKeyword);
             case "content" -> postRepository.countByContentContainingIgnoreCaseAndDeletedFalse(processedKeyword);
+            case "comment" -> postRepository.countByCommentsContentContainingIgnoreCaseAndDeletedFalse(processedKeyword);
             default -> 0L;
         };
+    }
+
+    /**
+     * 댓글 내용으로 검색 (성능 최적화)
+     */
+    public Page<Post> searchByComments(String keyword, Pageable pageable) {
+        if (!StringUtils.hasText(keyword)) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        String processedKeyword = preprocessKeyword(keyword);
+        if (!StringUtils.hasText(processedKeyword)) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        log.debug("댓글 내용 검색 실행: keyword={}, page={}, size={}", processedKeyword, pageable.getPageNumber(), pageable.getPageSize());
+        return postRepository.findByCommentsContentContainingIgnoreCaseAndDeletedFalse(processedKeyword, pageable);
     }
 }
