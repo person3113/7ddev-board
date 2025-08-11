@@ -128,11 +128,11 @@ public class ReportController {
         ReportStatus reportStatus = ReportStatus.valueOf(status);
 
         if ("post".equals(type)) {
-            Page<ReportedPost> reports = reportService.getPendingPostReports(pageable);
+            Page<ReportedPost> reports = reportService.getPostReportsByStatus(reportStatus, pageable);
             model.addAttribute("reports", reports);
             model.addAttribute("reportType", "post");
         } else {
-            Page<ReportedComment> reports = reportService.getPendingCommentReports(pageable);
+            Page<ReportedComment> reports = reportService.getCommentReportsByStatus(reportStatus, pageable);
             model.addAttribute("reports", reports);
             model.addAttribute("reportType", "comment");
         }

@@ -156,6 +156,20 @@ public class ReportService {
     }
 
     /**
+     * 상태별 게시글 신고 목록 조회
+     */
+    public Page<ReportedPost> getPostReportsByStatus(ReportStatus status, Pageable pageable) {
+        return reportedPostRepository.findByStatus(status, pageable);
+    }
+
+    /**
+     * 상태별 댓글 신고 목록 조회
+     */
+    public Page<ReportedComment> getCommentReportsByStatus(ReportStatus status, Pageable pageable) {
+        return reportedCommentRepository.findByStatus(status, pageable);
+    }
+
+    /**
      * 최근 신고 목록 조회
      */
     public Page<ReportedPost> getRecentPostReports(Pageable pageable) {
